@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Editar Pregunta</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <a class="btn-header" href="../index.html">
+            <img src="../Assets/Sin título-1.png" alt="Logo">
+        </a>
+    </header>
+
+    <div class="Titulo">
+        <img src="../Assets/Edicion.png" class="animar-imagen" alt="Editar Pregunta">
+    </div>
+
+    <form id="formulario">
+        <div class="select-cont">
+            <label for="dificultad">Selecciona la dificultad:</label>
+            <select id="dificultad" name="dificultad">
+                <option value="Facil">Fácil</option>
+                <option value="Intermedio">Intermedio</option>
+                <option value="Dificil">Difícil</option>
+            </select>
+        </div>
+
+        <div class="preguntas-cont">
+            <label class="preguntas-cont-tit" for="tema">TEMARIO:</label>
+            <input type="text" id="tema" name="tema" placeholder="Tema de la pregunta">
+
+            <label class="preguntas-cont-tit" for="enunciado">Enunciado:</label>
+            <textarea id="enunciado" name="enunciado"></textarea>
+
+            <label class="preguntas-cont-tit" for="respuestaA">Respuesta A:</label>
+            <input type="text" id="respuestaA" name="respuestaA" placeholder="Respuesta A">
+
+            <label class="preguntas-cont-tit" for="respuestaB">Respuesta B:</label>
+            <input type="text" id="respuestaB" name="respuestaB" placeholder="Respuesta B">
+
+            <label class="preguntas-cont-tit" for="respuestaC">Respuesta C:</label>
+            <input type="text" id="respuestaC" name="respuestaC" placeholder="Respuesta C">
+
+            <label class="preguntas-cont-tit" for="respuestaD">Respuesta D:</label>
+            <input type="text" id="respuestaD" name="respuestaD" placeholder="Respuesta D">
+
+            <div class="select-correcta">
+                <label>Selecciona la respuesta correcta:</label>
+                <div class="opciones-correctas">
+                    <label><input type="radio" name="respuesta_correcta" value="A"><span>A</span></label>
+                    <label><input type="radio" name="respuesta_correcta" value="B"><span>B</span></label>
+                    <label><input type="radio" name="respuesta_correcta" value="C"><span>C</span></label>
+                    <label><input type="radio" name="respuesta_correcta" value="D"><span>D</span></label>
+                </div>
+            </div>
+        </div>
+
+        <div class="button-ctn">
+            <button type="submit"><img src="../Assets/BOTON GUARDAR CAMBIOS.png" alt="Guardar"></button>
+        </div>
+    </form>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const preguntaId = urlParams.get('id');
+        console.log("ID de la pregunta:", preguntaId);
+
+        if (!preguntaId) {
+            alert("❌ No se proporcionó un ID válido.");
+        }
+
+        // Cargar la pregunta actual
+        fetch(`/pregunta/${preguntaId}`)
+            .then(res => {
+                if (!res.ok) throw new Error("❌ Error al cargar la pregunta");
+                return res.json();
+            })
+            .then(p => {
+                document.getElementById("tema").value = p.tema;
+                document.getElementById("enunciado").value = p.enunciado;
+                document.getElementById("respuestaA").value = p.respuestaA;
+                document.getElementById("respuestaB").value = p.respuestaB;
+                document.getElementById("respuestaC").value = p.respuestaC;
+                document.getElementById("respuestaD").value = p.respuestaD;
+                document.getElementById("dificultad").value = p.dificultad.charAt(0).toUpperCase() + p.dificultad.slice(1);
+                document.querySelector(`input[name="respuesta_correcta"][value="${p.correcta}"]`).checked = true;
+            })
+            .catch(err => {
+                console.error(err);
+                alert("❌ No se pudo cargar la pregunta.");
+            });
+
+        // Guardar cambios
+        document.getElementById("formulario").addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            const correctaInput = document.querySelector('input[name="respuesta_correcta"]:checked');
+            if (!correctaInput) {
+                alert("❌ Debes seleccionar la respuesta correcta.");
+                return;
+            }
+
+            const data = {
+                tema: document.getElementById("tema").value.trim(),
+                enunciado: document.getElementById("enunciado").value.trim(),
+                respuestaA: document.getElementById("respuestaA").value.trim(),
+                respuestaB: document.getElementById("respuestaB").value.trim(),
+                respuestaC: document.getElementById("respuestaC").value.trim(),
+                respuestaD: document.getElementById("respuestaD").value.trim(),
+                dificultad: document.getElementById("dificultad").value.trim().toLowerCase(),
+                correcta: correctaInput.value.trim()
+            };
+
+            fetch(`/Editar-Preguntas/${preguntaId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+                .then(res => {
+                    if (!res.ok) throw new Error("Error al actualizar");
+                    return res.text();
+                })
+                .then(text => {
+                    alert("✅ " + text);
+                    window.location.href = "../Gestionar_Preguntas/index.html";
+                })
+                .catch(err => {
+                    console.error("❌", err);
+                    alert("❌ Error al guardar los cambios");
+                });
+        });
+    </script>
+
+
+    <script>
+        // Lista de canciones disponibles
+        const canciones = [
+            "/Assets/Musica/Metal Gear Solid 2 [Sons of Liberty] - Complete Soundtrack - 102 - Sons of Liberty Main Titles - Ragitsu.mp3",
+            "/Assets/Musica/MGS3 OST CQC - Metal Gear Solid 3 Snake Eater - Nox.mp3",
+            "/Assets/Musica/ATLUS Sound Team - Mementos.mp3",
+            "/Assets/Musica/ATLUS Sound Team - Interrogation Room.mp3",
+            "/Assets/Musica/02 - Introduction - MetalGearSolidF4N.mp3",
+            "/Assets/Musica/05 - Intruder 1 - MetalGearSolidF4N.mp3",
+            "/Assets/Musica/07 - Intruder 2 - MetalGearSolidF4N.mp3",
+            "/Assets/Musica/Call of Duty 4 Modern Warfare Soundtrack - 1.Main Theme - Thom9316.mp3",
+            "/Assets/Musica/Mission - Yasuharu Takanashi.mp3",
+            "/Assets/Musica/Naruto OST 2 - Sasuke's Theme - ostdelta1.mp3",
+
+            // Agrega más rutas si tienes más canciones
+        ];
+
+        // Función para seleccionar una canción aleatoria distinta de la actual
+        function obtenerCancionAleatoria(actual) {
+            let nueva;
+            do {
+                nueva = canciones[Math.floor(Math.random() * canciones.length)];
+            } while (canciones.length > 1 && nueva === actual);
+            return nueva;
+        }
+
+        // Crear y configurar el elemento <audio>
+        const musica = document.createElement("audio");
+        musica.id = "musicaFondo";
+        musica.autoplay = true;
+        musica.loop = false; // No hacemos loop, cambiamos al terminar
+        musica.volume = 1.0;
+
+        let cancionActual = obtenerCancionAleatoria(null);
+
+        const source = document.createElement("source");
+        source.src = cancionActual;
+        source.type = "audio/mpeg";
+
+        musica.appendChild(source);
+        document.body.appendChild(musica);
+
+        // Cuando termina la canción, se carga otra diferente
+        musica.addEventListener("ended", () => {
+            cancionActual = obtenerCancionAleatoria(cancionActual);
+            source.src = cancionActual;
+            musica.load();
+            musica.play();
+        });
+
+        // Fade-out al cambiar de página
+        document.querySelectorAll("a").forEach(link => {
+            link.addEventListener("click", function (e) {
+                e.preventDefault();
+                const href = this.href;
+
+                let volume = musica.volume;
+                const fade = setInterval(() => {
+                    if (volume > 0.05) {
+                        volume -= 0.05;
+                        musica.volume = volume;
+                    } else {
+                        clearInterval(fade);
+                        musica.pause();
+                        window.location.href = href;
+                    }
+                }, 50);
+            });
+        });
+    </script>
+
+</body>
+
+</html>

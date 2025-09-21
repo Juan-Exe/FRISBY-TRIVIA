@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="Titulo">
+        <img src="Assets/Sin título-1.png" class="animar-imagen">
+    </div>
+
+    <div class="Btn-inicio-cont">
+        <button class="Btn-inicio-cont-bt" id="btn-comenzar">
+            <img src="Assets/Boton.png" alt="">
+        </button>
+    </div>
+
+    <div class="btn-gestion">
+        <a href="Registrar_Preguntas/index.html">Registrar Preguntas</a>
+        <a href="Gestionar_Preguntas/">Gestiona Preguntas</a>
+    </div>
+
+    <script>
+        document.getElementById('btn-comenzar').addEventListener('click', () => {
+            fetch('/conteo-preguntas')
+                .then(res => res.json())
+                .then(conteo => {
+                    const faltan = [];
+
+                    if (conteo.facil < 10) faltan.push(`Fáciles: ${conteo.facil}/10`);
+                    if (conteo.intermedio < 10) faltan.push(`Intermedias: ${conteo.intermedio}/10`);
+                    if (conteo.dificil < 10) faltan.push(`Difíciles: ${conteo.dificil}/10`);
+
+                    if (faltan.length > 0) {
+                        alert("❌ No puedes comenzar.\nFaltan preguntas:\n" + faltan.join("\n"));
+                    } else {
+                        window.location.href = "Pre-Inicio/index.html";
+                    }
+                })
+                .catch(err => {
+                    console.error("Error al verificar preguntas:", err);
+                    alert("❌ No se pudo verificar la base de datos.");
+                });
+        });
+    </script>
+
+
+    <script>
+        const canciones = [
+            "/Assets/Musica/The Legend of Zelda The Wind Waker HD OST 'Outset Island' - Rabbit OST.mp3",
+            "/Assets/Musica/Lyn Inaizumi - Tokyo Daylight.mp3",
+            "/Assets/Musica/ATLUS Sound Team - Phantom.mp3",
+            "/Assets/Musica/ATLUS Sound Team - Have a Short Rest.mp3",
+            "/Assets/Musica/ATLUS Sound Team - King, Queen, and Slaves -another version-.mp3",
+            "/Assets/Musica/Naruto OST 2 - Afternoon of Konoha - ostdelta1.mp3",
+        ];
+
+        let musica;
+        let source;
+        let cancionActual;
+
+        function obtenerCancionAleatoria(actual) {
+            let nueva;
+            do {
+                nueva = canciones[Math.floor(Math.random() * canciones.length)];
+            } while (canciones.length > 1 && nueva === actual);
+            return nueva;
+        }
+
+        function iniciarMusica() {
+            musica = document.createElement("audio");
+            musica.autoplay = true;
+            musica.loop = false;
+            musica.volume = 1.0;
+
+            cancionActual = obtenerCancionAleatoria(null);
+            source = document.createElement("source");
+            source.src = cancionActual;
+            source.type = "audio/mpeg";
+
+            musica.appendChild(source);
+            document.body.appendChild(musica);
+
+            musica.addEventListener("ended", () => {
+                cancionActual = obtenerCancionAleatoria(cancionActual);
+                source.src = cancionActual;
+                musica.load();
+                musica.play();
+            });
+        }
+
+        // Si ya se autorizó en esta sesión, reproducimos directamente
+        if (sessionStorage.getItem("musicaActivada") === "true") {
+            iniciarMusica();
+        } else {
+            // Esperamos primer clic del usuario
+            document.addEventListener('click', () => {
+                iniciarMusica();
+                sessionStorage.setItem("musicaActivada", "true");
+            }, { once: true });
+        }
+
+        // Fade-out al salir
+        document.querySelectorAll("a").forEach(link => {
+            link.addEventListener("click", function (e) {
+                e.preventDefault();
+                const href = this.href;
+
+                if (!musica) {
+                    window.location.href = href;
+                    return;
+                }
+
+                let volume = musica.volume;
+                const fade = setInterval(() => {
+                    if (volume > 0.05) {
+                        volume -= 0.05;
+                        musica.volume = volume;
+                    } else {
+                        clearInterval(fade);
+                        musica.pause();
+                        window.location.href = href;
+                    }
+                }, 50);
+            });
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,179 @@
+body{
+    margin-bottom: 50px;
+    font-family: 'Montserrat'
+}
+
+
+.Titulo{
+    display: flex;
+    height: 200px;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+}
+
+header img{
+    padding: 50px 0px 0px 50px;
+    width: 150px;
+    height: auto;
+}
+
+.btn-header img {
+    transition: transform 0.3s ease;
+}
+
+.btn-header:hover img {
+    transform: translateY(10px);
+}
+
+
+.Titulo img{
+    width: 300px;
+    height: auto;
+}
+
+.animar-imagen {
+    position: relative;
+    animation: flotar 1.8s ease-in-out infinite;
+}
+
+@keyframes flotar {
+    0% {
+        top: 0px;
+    }
+    50% {
+        top: 15px;
+    }
+    100% {
+        top: 0px;
+    }
+}
+
+.titulo-registro{
+
+    margin-left: 50px;
+    font-weight: 500;
+    font-size: 20px;
+    text-transform: uppercase;
+}
+
+.gestion-container {
+    flex-wrap: wrap;
+    width: 100%;
+    height: auto;
+    display: flex;
+    justify-content: center;
+    flex-direction: row;
+    gap: 30px;
+    margin-top: 30px;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.pregunta-box {
+    width: 80%;
+    max-width: 800px;
+    border: 2px solid #000;
+    border-radius: 15px;
+    padding: 20px;
+    background-color: #fdfdfd;
+    box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.6);
+}
+
+.pregunta-box p {
+    margin: 8px 0;
+    font-size: 16px;
+}
+
+.pregunta-box ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.pregunta-box li {
+    margin: 5px 0;
+}
+
+
+.btn-group {
+    margin-top: 15px;
+    display: flex;
+    gap: 10px;
+}
+
+.btn-editar, .btn-eliminar {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    font-family: 'Montserrat', sans-serif;
+    transition: transform 0.2s ease;
+}
+
+.btn-editar {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.btn-eliminar {
+    background-color: #f44336;
+    color: white;
+}
+
+.btn-editar:hover, .btn-eliminar:hover {
+    transform: translateY(-5px);
+}
+
+.pregunta-box{
+    margin-bottom: 20px;
+}
+
+.respuesta-correcta {
+    color: #4CAF50;
+    font-weight: bold;
+}
+
+.titulo-jugadas{
+    margin-left: 50px;
+    font-weight: 500;
+    font-size: 20px;
+    text-transform: uppercase;
+}
+
+.resumen-temas {
+    display: flex;
+    flex-wrap: wrap; /* permite múltiples líneas */
+    gap: 10px; /* espacio uniforme entre items */
+    max-height: 200px;
+    margin: 20px 70px 10px 70px; /* margen arriba/derecha/abajo/izquierda */
+    padding: 10px 20px;
+    font-size: 15px;
+    border-radius: 10px;
+}
+
+.resumen-temas h3 {
+    flex-basis: 100%; /* hace que el título ocupe toda la fila */
+    margin: 0 0 10px 0;
+    font-size: 1.2rem;
+    color: #000000;
+}
+
+.resumen-temas p {
+    margin: 0;
+    padding: 5px 10px;
+    border-radius: 5px;
+    min-width: 180px;
+}
+
+.resumen-dificultad {
+    margin-left: 90px;
+    display: flex;
+    gap: 20px;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.resumen-dificultad p{
+    position: relative;
+    font-size: 15px;
+    top: 6px;
+}

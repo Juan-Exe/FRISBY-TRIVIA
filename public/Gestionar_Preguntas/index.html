@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Gestión de Preguntas</title>
+    <link rel="stylesheet" href="estilos.css">
+</head>
+
+<body>
+
+    <!-- Header y Título -->
+    <header>
+        <a class="btn-header" href="../index.html">
+            <img src="../Assets/Sin título-1.png" alt="Logo">
+        </a>
+    </header>
+
+    <div class="Titulo">
+        <img src="../Assets/Gstion.png" class="animar-imagen" alt="Título">
+    </div>
+
+
+    <!-- Resumen por tema -->
+    <div id="resumen-temas" class="resumen-temas"></div>
+
+    <div id="resumen-dificultad" class="resumen-dificultad"></div>
+
+
+
+    <!-- Preguntas Registradas -->
+    <label class="titulo-registro">Preguntas Registradas:</label>
+    <div class="gestion-container" id="contenedor-registradas">
+        <!-- Aquí se insertarán dinámicamente las preguntas desde /preguntas -->
+    </div>
+
+    <!-- Preguntas Jugadas (aún estático) -->
+    <label class="titulo-jugadas">Preguntas Jugadas:</label>
+    <div class="gestion-container">
+        <div class="pregunta-box">
+            <p><strong>Dificultad:</strong> Intermedio</p>
+            <p><strong>Enunciado:</strong> ¿Cuál es la capital de Francia?</p>
+            <ul>
+                <li><strong>A:</strong> Madrid</li>
+                <li><strong>B:</strong> París</li>
+                <li><strong>C:</strong> Roma</li>
+                <li><strong>D:</strong> Berlín</li>
+            </ul>
+            <div class="btn-group">
+                <button class="btn-editar">Editar</button>
+                <button class="btn-eliminar">Bloquear</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script para cargar dinámicamente preguntas desde /preguntas -->
+    <script>
+        fetch('/preguntas')
+            .then(response => response.json())
+            .then(data => {
+                const container = document.getElementById('contenedor-registradas');
+                container.innerHTML = ''; // Limpiar contenido
+
+                const resumenContainer = document.getElementById('resumen-temas');
+                resumenContainer.innerHTML = ''; // Limpiar resumen también
+
+                const resumenDificultad = document.getElementById('resumen-dificultad');
+                resumenDificultad.innerHTML = ''; // Limpiar resumen de dificultad
+
+                if (data.length === 0) {
+                    container.innerHTML = '<p>No hay preguntas registradas aún.</p>';
+                    resumenContainer.innerHTML = '<p>No hay temas disponibles.</p>';
+                    resumenDificultad.innerHTML = '<p>No hay conteo por dificultad.</p>';
+                    return;
+                }
+
+                // Crear resumen por tema
+                const temasMap = {};
+                data.forEach(p => {
+                    temasMap[p.tema] = (temasMap[p.tema] || 0) + 1;
+                });
+
+                const resumenHTML = Object.entries(temasMap)
+                    .map(([tema, cantidad]) => `<p><strong>${tema}</strong> ${cantidad} pregunta(s)</p>`)
+                    .join('');
+                resumenContainer.innerHTML = `<h3>Resumen por Tema:</h3>${resumenHTML}`;
+
+                // Mostrar preguntas sin agrupar
+                data.forEach(p => {
+                    const respuestas = ['A', 'B', 'C', 'D'];
+                    const respuestaHTML = respuestas.map(letra => {
+                        const texto = p['respuesta' + letra];
+                        const clase = (p.correcta === letra) ? 'respuesta-correcta' : '';
+                        return `<li class="${clase}"><strong>${letra}:</strong> ${texto}</li>`;
+                    }).join('');
+
+                    const preguntaHTML = `
+                    <div class="pregunta-box">
+                        <p><strong>Tema:</strong> ${p.tema}</p>
+                        <p><strong>Dificultad:</strong> ${p.dificultad}</p>
+                        <p><strong>Enunciado:</strong> ${p.enunciado}</p>
+                        <ul>${respuestaHTML}</ul>
+                        <div class="btn-group">
+                            <button class="btn-editar" onclick="location.href='../Editar_Preguntas/index.html?id=${p.id}'">Editar</button>
+                            <button class="btn-eliminar" data-id="${p.id}">Eliminar</button>
+                        </div>
+                    </div>
+                `;
+                    container.insertAdjacentHTML('beforeend', preguntaHTML);
+                });
+
+                // Crear resumen por dificultad (versión robusta que normaliza)
+                const dificultadMap = { Fácil: 0, Intermedio: 0, Difícil: 0 };
+
+                data.forEach(p => {
+                    const d = p.dificultad.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+                    if (d === 'facil') dificultadMap.Fácil++;
+                    else if (d === 'intermedio') dificultadMap.Intermedio++;
+                    else if (d === 'dificil') dificultadMap.Difícil++;
+                });
+
+                const resumenDificultadHTML = `
+                <h3>Conteo por Dificultad:</h3>
+                <p><strong>Fácil:</strong> ${dificultadMap.Fácil}</p>
+                <p><strong>Intermedio:</strong> ${dificultadMap.Intermedio}</p>
+                <p><strong>Difícil:</strong> ${dificultadMap.Difícil}</p>
+            `;
+                resumenDificultad.innerHTML = resumenDificultadHTML;
+            })
+            .catch(err => {
+                console.error('Error cargando preguntas:', err);
+                document.getElementById('contenedor-registradas').innerHTML = '<p>Error cargando preguntas.</p>';
+            });
+    </script>
+
+
+
+    <script>
+        // Lista de canciones disponibles
+        const canciones = [
+            "/Assets/Musica/Haruko Komiya - Hymn of the Soul.mp3",
+            "/Assets/Musica/Secret.mp3",
+            "/Assets/Musica/Dark_souls.mp3",
+            "/Assets/Musica/Dark_souls_inicio.mp3",
+            "/Assets/Musica/ATLUS Sound Team - Beneath the Mask -instrumental version-.mp3",
+            "/Assets/Musica/Riding - Day (The Legend of Zelda Breath of the Wild OST) - Peaches Lamb.mp3",
+            "/Assets/Musica/Riding - Night (The Legend of Zelda Breath of the Wild OST) - Peaches Lamb.mp3",
+            "/Assets/Musica/Shrine (The Legend of Zelda Breath of the Wild OST) - Peaches Lamb.mp3",
+            "/Assets/Musica/Temple Of Time (The Legend of Zelda Breath of the Wild OST) - Peaches Lamb.mp3",
+
+        ];
+
+        // Función para seleccionar una canción aleatoria distinta de la actual
+        function obtenerCancionAleatoria(actual) {
+            let nueva;
+            do {
+                nueva = canciones[Math.floor(Math.random() * canciones.length)];
+            } while (canciones.length > 1 && nueva === actual);
+            return nueva;
+        }
+
+        // Crear y configurar el elemento <audio>
+        const musica = document.createElement("audio");
+        musica.id = "musicaFondo";
+        musica.autoplay = true;
+        musica.loop = false; // No hacemos loop, cambiamos al terminar
+        musica.volume = 1.0;
+
+        let cancionActual = obtenerCancionAleatoria(null);
+
+        const source = document.createElement("source");
+        source.src = cancionActual;
+        source.type = "audio/mpeg";
+
+        musica.appendChild(source);
+        document.body.appendChild(musica);
+
+        // Cuando termina la canción, se carga otra diferente
+        musica.addEventListener("ended", () => {
+            cancionActual = obtenerCancionAleatoria(cancionActual);
+            source.src = cancionActual;
+            musica.load();
+            musica.play();
+        });
+
+        // Fade-out al cambiar de página
+        document.querySelectorAll("a").forEach(link => {
+            link.addEventListener("click", function (e) {
+                e.preventDefault();
+                const href = this.href;
+
+                let volume = musica.volume;
+                const fade = setInterval(() => {
+                    if (volume > 0.05) {
+                        volume -= 0.05;
+                        musica.volume = volume;
+                    } else {
+                        clearInterval(fade);
+                        musica.pause();
+                        window.location.href = href;
+                    }
+                }, 50);
+            });
+        });
+    </script>
+
+
+    <script>
+        document.addEventListener('click', function (e) {
+            if (e.target.classList.contains('btn-eliminar')) {
+                const id = e.target.dataset.id;
+                const preguntaBox = e.target.closest('.pregunta-box');
+
+                if (confirm("¿Estás seguro de que deseas eliminar esta pregunta?")) {
+                    fetch(`/eliminar-pregunta/${id}`, {
+                        method: 'DELETE'
+                    })
+                        .then(res => {
+                            if (!res.ok) throw new Error("Fallo al eliminar");
+                            // Elimina el bloque de la pregunta del DOM
+                            preguntaBox.remove();
+                        })
+                        .catch(err => {
+                            alert("❌ Error al eliminar la pregunta.");
+                            console.error(err);
+                        });
+                }
+            }
+        });
+    </script>
+
+
+</body>
+
+</html>

@@ -1,0 +1,302 @@
+body {
+    margin: 0;
+    font-family: "Montserrat";
+}
+
+.parte-izquierda {
+    width: 50vw;
+    height: 100vh;
+    border-right: 3px black solid;
+}
+
+.parte-derecha {
+    width: 50vw;
+    height: 100vh;
+    border-left: 3px black solid;
+}
+
+.partes-ctn {
+    display: flex;
+    flex-flow: row;
+}
+
+header {
+    position: absolute;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+}
+
+header img {
+    padding: 50px 0px 0px 50px;
+    width: 150px;
+    height: auto;
+}
+
+.comodin-ext {
+    margin-right: 20px;
+}
+
+.comodines-ctn {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    align-items: center;
+    margin-top: 30px;
+    margin-right: 50px;
+}
+
+.comodines-ctn button {
+    height: 60px;
+    width: 60px;
+}
+
+.btn-header img {
+    transition: transform 0.3s ease;
+}
+
+.btn-header:hover img {
+    transform: translateY(-10px);
+}
+
+.comodin-ext {
+    background: none;
+    background-image: url("../Assets/Uso.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.comodines-ctn button:nth-child(2) {
+    background: none;
+    background-image: url("../Assets/Llamada.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border: none;
+    cursor: pointer;
+    border-radius: 10px;
+}
+
+.comodines-ctn button:nth-child(3) {
+    background: none;
+    background-image: url("../Assets/Skull.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border: none;
+    cursor: pointer;
+    border-radius: 10px;
+}
+
+.comodines-ctn button:last-child {
+    background: none;
+    background-image: url("../Assets/roulete.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border: none;
+    cursor: pointer;
+    border-radius: 10px;
+}
+
+.numeros-ctn {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 50px;
+    gap: 80px;
+    width: 100%;
+    top: 690px;
+}
+
+.numeros-ctn label {
+    color: white;
+    background-color: #ebd972;
+    width: 20px;
+    text-align: center;
+    border-radius: 50px;
+    padding: 8px;
+    opacity: 0.3; /* <-- gris translúcido por defecto */
+    transition: opacity 0.5s ease;
+}
+
+/* Intermedio */
+.numeros-ctn label:nth-child(6),
+.numeros-ctn label:nth-child(7),
+.numeros-ctn label:nth-child(8),
+.numeros-ctn label:nth-child(9),
+.numeros-ctn label:nth-child(10) {
+    background-color: #e97a5e;
+}
+
+/* Difícil */
+.numeros-ctn label:nth-child(11),
+.numeros-ctn label:nth-child(12),
+.numeros-ctn label:nth-child(13),
+.numeros-ctn label:nth-child(14),
+.numeros-ctn label:nth-child(15) {
+    background-color: #fa3d3d;
+}
+
+#comodin-llamada {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.3);
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+#comodin-llamada.fade-in {
+    opacity: 1;
+}
+
+#comodin-llamada.fade-out {
+    opacity: 0;
+}
+
+#cuadro-llamada {
+    background-color: #fdfdfd;
+    border: 2px solid #000;
+    border-radius: 15px;
+    padding: 40px;
+    font-size: 60px;
+    font-weight: bold;
+    font-family: 'Montserrat', sans-serif;
+    box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.6);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+#cuadro-llamada.fade-in {
+    opacity: 1;
+}
+
+#cuadro-llamada.fade-out {
+    opacity: 0;
+}
+
+
+/* Estilo cuando la ronda ya fue alcanzada o completada */
+.numeros-ctn label.activa {
+    opacity: 1 !important;
+}
+
+
+.aureola img {
+    position: absolute;
+    background: none;
+    border-radius: 50px;
+    top: 680px;
+    right: 713px;
+    width: 30px;
+    height: 20px;
+}
+
+.uso img {
+    position: absolute;
+    background: none;
+    top: 665px;
+    right: 592px;
+    width: 40px;
+    height: 40px;
+}
+
+.aureola img,
+.uso img {
+    transition: opacity 0.8s ease-in-out;
+    opacity: 0.5; /* Transparente al inicio */
+}
+
+.aureola img.activa,
+.uso img.activa {
+    opacity: 1;
+}
+
+
+.enunciado {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    top: 750px;
+    right: 118px;
+    height: 70px;
+    width: 1670px;
+    border-radius: 50px;
+    background: #151313ec;
+}
+
+.enunciado p {
+    padding: 20px;
+    text-transform: uppercase;
+    text-align: center;
+    font-size: 25px;
+    font-weight: bolder;
+    color: white;
+}
+
+.respuestas-cont {
+    position: absolute;
+    display: flex;
+    justify-content: space-between;
+    top: 835px;
+    flex-wrap: wrap;
+    right: 118px;
+    height: 220px;
+    width: 1670px;
+}
+
+.respuestas-cont button {
+    font-family: "Montserrat";
+    font-size: 25px;
+    padding-left: 30px;
+    width: 790px;
+    height: 80px;
+    text-align: left;
+    color: white;
+    background: #151313ec;
+    border-radius: 50px;
+    cursor: pointer;
+    border: none;
+}
+
+@media (max-width: 1912px) {
+    .numeros-ctn {
+        top: 590px;
+    }
+
+    .aureola img {
+        top: 580px;
+        right: 709px;
+    }
+
+    .uso img {
+        top: 565px;
+        right: 587px;
+    }
+
+    .enunciado {
+        top: 645px;
+        right: 118px;
+    }
+
+
+
+    .respuestas-cont {
+
+        top: 730px;
+        right: 118px;
+
+    }
+}

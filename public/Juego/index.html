@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Juego</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+        .respuestas-cont button {
+            transition: background-color 0.3s ease;
+            position: relative;
+        }
+
+        .respuestas-cont button span {
+            display: inline-block;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .fade-in-texto {
+            opacity: 1 !important;
+        }
+
+        .fade-out-texto {
+            opacity: 0 !important;
+        }
+
+        .seleccionado {
+            background-color: #ffb74d !important;
+        }
+
+        .correcto {
+            background-color: #4caf50 !important;
+        }
+
+        .incorrecto {
+            background-color: #f44336 !important;
+        }
+
+        .enunciado p {
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .fade-in {
+            opacity: 1 !important;
+        }
+
+        .fade-out {
+            opacity: 0 !important;
+        }
+
+        .comodin-usado {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        #efecto-uso img {
+            max-width: 80%;
+            max-height: 80%;
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+
+        @keyframes fadeOutSmooth {
+            0% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+
+            100% {
+                opacity: 0;
+                transform: scale(0.8) translateY(20px);
+            }
+        }
+
+        .fade-out-respuesta {
+            animation: fadeOutSmooth 0.6s ease forwards;
+            pointer-events: none;
+        }
+
+        .ruleta-container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+        }
+
+        .flecha-indicadora {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 30px solid #333;
+            z-index: 10;
+        }
+
+        .ruleta-container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.4);
+            border-radius: 50%;
+            background-color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+
+    <script src="musica-rondas.js"></script>
+
+    <div class="partes-ctn">
+        <header>
+            <a class="btn-header" href="../index.html"><img src="../Assets/Sin título-1.png" alt="" /></a>
+            <div class="comodines-ctn">
+                <button class="comodin-ext"></button>
+                <button></button><button></button><button></button>
+            </div>
+        </header>
+
+        <div class="parte-izquierda"></div>
+        <div class="parte-derecha"></div>
+        <div class="aureola"><img id="imgAureola" src="../Assets/aureola transparente.png" alt="" /></div>
+        <div class="uso"><img id="imgUso" src="../Assets/Uso transparente png 2.png" alt="" /></div>
+
+        <div class="numeros-ctn">
+            <label>1</label><label>2</label><label>3</label><label>4</label><label>5</label>
+            <label>6</label><label>7</label><label>8</label><label>9</label><label>10</label>
+            <label>11</label><label>12</label><label>13</label><label>14</label><label>15</label>
+        </div>
+
+        <div class="enunciado">
+            <p></p>
+        </div>
+        <div class="respuestas-cont">
+            <button><span></span></button>
+            <button><span></span></button>
+            <button><span></span></button>
+            <button><span></span></button>
+        </div>
+    </div>
+
+    <div id="efecto-uso"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: none; justify-content: center; align-items: center; z-index: 9999;">
+        <img src="../Assets/Uso comodin.png" />
+    </div>
+    <audio id="audio-uso" src="../Assets/Musica/Musica Comodin Uso/Uso Carruso Llega.mp3"></audio>
+
+    <script>
+        let rondaActual = 1;
+        let temasPorRonda = JSON.parse(localStorage.getItem("temasPorRonda") || "[]");
+        let yaUsadas = [];
+        let respuestaSeleccionada = null;
+        let estado = "seleccion";
+        let preguntaActual = null;
+        let pasoAnimacion = 0;
+        let letras = ["A", "B", "C", "D"];
+
+        function obtenerDificultad(ronda) {
+            if (ronda <= 5) return "facil";
+            if (ronda <= 10) return "intermedio";
+            return "dificil";
+        }
+
+        function actualizarNumerosRonda() {
+            const labels = document.querySelectorAll(".numeros-ctn label");
+            labels.forEach((label, index) => {
+                label.classList.toggle("activa", index < rondaActual);
+            });
+
+            const imgAureola = document.getElementById("imgAureola");
+            if (rondaActual === 10) {
+                imgAureola.style.opacity = 0.5;
+                setTimeout(() => {
+                    imgAureola.src = "../Assets/aureola.png";
+                    imgAureola.classList.add("activa");
+                    imgAureola.style.opacity = 1;
+                }, 100);
+            }
+
+            const imgUso = document.getElementById("imgUso");
+            const boton = document.querySelector(".comodin-ext");
+            if (rondaActual < 11) {
+                boton.style.opacity = "0.3";
+                boton.disabled = true;
+            } else {
+                imgUso.style.opacity = 0.5;
+                setTimeout(() => {
+                    imgUso.src = "../Assets/Uso png 2.png";
+                    imgUso.classList.add("activa");
+                    imgUso.style.opacity = 1;
+                }, 100);
+                boton.style.opacity = "1";
+                boton.disabled = false;
+            }
+        }
+
+        function cargarPregunta(ronda) {
+            const tema = temasPorRonda[ronda - 1];
+            const dificultad = obtenerDificultad(ronda);
+            estado = "animacion";
+            respuestaSeleccionada = null;
+            pasoAnimacion = 0;
+
+            const enunciado = document.querySelector(".enunciado p");
+            const botones = document.querySelectorAll(".respuestas-cont button");
+
+            enunciado.textContent = "";
+            enunciado.className = "";
+            botones.forEach((b) => {
+                b.className = "";
+                const span = b.querySelector("span");
+                span.textContent = "";
+                span.className = "";
+                b.style.display = "inline-block";
+                b.disabled = true;
+            });
+
+            fetch("http://localhost:3001/pregunta-random", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ tema, dificultad, yaUsadas }),
+            })
+                .then((res) => {
+                    if (!res.ok) throw new Error("No hay más preguntas disponibles");
+                    return res.json();
+                })
+                .then((pregunta) => {
+                    preguntaActual = pregunta;
+                    yaUsadas.push(pregunta.id);
+                    actualizarNumerosRonda();
+                    reproducirMusicaParaRonda(rondaActual);
+                    document.body.addEventListener("click", mostrarPorPasos);
+                })
+                .catch((err) => alert("⚠️ " + err.message));
+        }
+
+        function mostrarPorPasos() {
+            const enunciado = document.querySelector(".enunciado p");
+            const botones = document.querySelectorAll(".respuestas-cont button");
+
+            if (estado !== "animacion") return;
+
+            if (pasoAnimacion === 0) {
+                enunciado.textContent = preguntaActual.enunciado;
+                enunciado.classList.add("fade-in");
+            } else if (pasoAnimacion >= 1 && pasoAnimacion <= 4) {
+                const i = pasoAnimacion - 1;
+                const span = botones[i].querySelector("span");
+                const respuesta = preguntaActual?.respuestas?.[letras[i].toLowerCase()];
+                span.textContent = `${letras[i]}: ${respuesta || "(Sin respuesta)"}`;
+                span.classList.add("fade-in-texto");
+                botones[i].onclick = () => manejarClick(botones[i], letras[i]);
+            } else {
+                botones.forEach((b) => b.disabled = false);
+                estado = "seleccion";
+                document.body.removeEventListener("click", mostrarPorPasos);
+            }
+
+            pasoAnimacion++;
+        }
+
+        function manejarClick(boton, letra) {
+            const botones = document.querySelectorAll(".respuestas-cont button");
+
+            if (estado === "seleccion" || (estado === "confirmacion" && respuestaSeleccionada !== letra)) {
+                botones.forEach((b) => b.classList.remove("seleccionado"));
+                boton.classList.add("seleccionado");
+                respuestaSeleccionada = letra;
+                estado = "confirmacion";
+            } else if (estado === "confirmacion" && respuestaSeleccionada === letra) {
+                botones.forEach((b) => b.disabled = true);
+                const correcta = preguntaActual.correcta.toUpperCase();
+                const correctaBtn = [...botones].find(b => b.querySelector("span").textContent.startsWith(correcta + ":"));
+
+                if (respuestaSeleccionada === correcta) {
+                    detenerMusica();
+                    boton.classList.remove("seleccionado");
+                    boton.classList.add("correcto");
+                    estado = "esperando-click";
+                    setTimeout(() => {
+                        document.body.addEventListener("click", () => {
+                            const enunciado = document.querySelector(".enunciado p");
+                            enunciado.classList.remove("fade-in");
+                            enunciado.classList.add("fade-out");
+                            botones.forEach((b) => {
+                                const span = b.querySelector("span");
+                                span.classList.remove("fade-in-texto");
+                                span.classList.add("fade-out-texto");
+                            });
+                            rondaActual++;
+                            if (rondaActual <= 15) {
+                                cargarPregunta(rondaActual);
+                            } else {
+                                alert("🎉 ¡Ganaste el juego!");
+                            }
+                        }, { once: true });
+                    }, 600);
+                } else {
+                    boton.classList.remove("seleccionado");
+                    boton.classList.add("incorrecto");
+                    correctaBtn.classList.add("correcto");
+                    estado = "esperando-click";
+                    setTimeout(() => {
+                        document.body.addEventListener("click", () => {
+                            const enunciado = document.querySelector(".enunciado p");
+                            enunciado.classList.remove("fade-in");
+                            enunciado.classList.add("fade-out");
+                            botones.forEach((b) => {
+                                const span = b.querySelector("span");
+                                span.classList.remove("fade-in-texto");
+                                span.classList.add("fade-out-texto");
+                            });
+                            setTimeout(() => {
+                                window.location.href = "perdiste.html";
+                            }, 500);
+                        }, { once: true });
+                    }, 600);
+                }
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            cargarPregunta(rondaActual);
+
+            // 🎯 Comodín Extra
+            const boton = document.querySelector(".comodin-ext");
+            const contenedor = document.getElementById("efecto-uso");
+            const imagen = contenedor.querySelector("img");
+            const audio = document.getElementById("audio-uso");
+
+            if (rondaActual < 11) {
+                boton.style.opacity = "0.3";
+                boton.disabled = true;
+            }
+
+            boton.addEventListener("click", async () => {
+                if (boton.classList.contains("comodin-usado") || rondaActual < 11) return;
+
+                boton.classList.add("comodin-usado");
+                contenedor.style.display = "flex";
+
+                setTimeout(() => {
+                    imagen.style.opacity = 1;
+                    audio.volume = 1;
+                    audio.play();
+                }, 100);
+
+                audio.addEventListener("ended", async () => {
+                    boton.style.opacity = "0.3";
+                    boton.disabled = true;
+                    imagen.style.opacity = 0;
+                    setTimeout(() => contenedor.style.display = "none", 1000);
+
+                    const dificultad = obtenerDificultad(rondaActual);
+                    const temaOriginal = temasPorRonda[rondaActual - 1];
+
+                    let nuevaPregunta = await fetch("http://localhost:3001/comodin-extra", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ tema: temaOriginal, dificultad, yaUsadas, rondaActual, temasPorRonda }),
+                    }).then(res => res.ok ? res.json() : null);
+
+                    if (!nuevaPregunta) {
+                        alert("⚠️ No hay preguntas disponibles en ningún tema de dificultad " + dificultad);
+                        return;
+                    }
+
+                    preguntaActual = nuevaPregunta;
+                    yaUsadas.push(preguntaActual.id);
+                    pasoAnimacion = 0;
+                    estado = "animacion";
+
+                    const enunciado = document.querySelector(".enunciado p");
+                    const botones = document.querySelectorAll(".respuestas-cont button");
+
+                    enunciado.textContent = "";
+                    enunciado.className = "";
+                    botones.forEach((b) => {
+                        b.className = "";
+                        const span = b.querySelector("span");
+                        span.textContent = "";
+                        span.className = "";
+                        b.style.display = "inline-block";
+                        b.disabled = true;
+                    });
+
+                    document.body.addEventListener("click", mostrarPorPasos);
+                }, { once: true });
+            });
+
+            // 📞 Comodín de la llamada
+            const botonLlamada = document.querySelector(".comodines-ctn button:nth-child(2)");
+            const contenedorLlamada = document.getElementById("comodin-llamada");
+            const cuadroLlamada = document.getElementById("cuadro-llamada");
+
+            botonLlamada.addEventListener("click", () => {
+                if (botonLlamada.classList.contains("comodin-usado")) return;
+
+                contenedorLlamada.style.display = "flex";
+                contenedorLlamada.classList.add("fade-in");
+                cuadroLlamada.textContent = "45";
+                cuadroLlamada.classList.remove("fade-out");
+                cuadroLlamada.classList.add("fade-in");
+
+                let segundos = 45;
+                const intervalo = setInterval(() => {
+                    segundos--;
+                    cuadroLlamada.textContent = segundos;
+                    if (segundos <= 0) {
+                        clearInterval(intervalo);
+
+                        cuadroLlamada.classList.remove("fade-in");
+                        cuadroLlamada.classList.add("fade-out");
+                        contenedorLlamada.classList.remove("fade-in");
+                        contenedorLlamada.classList.add("fade-out");
+
+                        setTimeout(() => {
+                            contenedorLlamada.style.display = "none";
+                            botonLlamada.classList.add("comodin-usado");
+                            botonLlamada.disabled = true;
+                            contenedorLlamada.classList.remove("fade-out");
+                        }, 700);
+                    }
+                }, 1000);
+            });
+
+            // 🧩 Comodín 50-50 (tercer botón sin clase ni título)
+            const boton5050 = document.querySelector(".comodines-ctn button:nth-child(3)");
+
+            boton5050.addEventListener("click", () => {
+                if (boton5050.classList.contains("comodin-usado") || estado !== "seleccion") return;
+
+                boton5050.classList.add("comodin-usado");
+                boton5050.disabled = true;
+
+                const correcta = preguntaActual.correcta.toUpperCase();
+                const botones = document.querySelectorAll(".respuestas-cont button");
+
+                const respuestasIncorrectas = [...botones].filter(btn => {
+                    const texto = btn.querySelector("span").textContent.trim();
+                    return !texto.startsWith(correcta + ":");
+                });
+
+                const aEliminar = respuestasIncorrectas.sort(() => Math.random() - 0.5).slice(0, 2);
+
+                aEliminar.forEach(btn => {
+                    btn.classList.add("fade-out-respuesta");
+
+                    // Esperamos que termine la animación y luego ocultamos el botón
+                    btn.addEventListener("animationend", function handleAnimEnd() {
+                        btn.style.display = "none";
+                        btn.removeEventListener("animationend", handleAnimEnd);
+                    });
+                });
+
+            });
+        });
+
+        document.addEventListener("DOMContentLoaded", () => {
+            cargarPregunta(rondaActual);
+
+            const botonRuleta = document.querySelector(".comodines-ctn button:nth-child(4)");
+            const contenedorRuleta = document.getElementById("comodin-ruleta");
+            const canvas = document.getElementById("canvas-ruleta");
+            const ctx = canvas.getContext("2d");
+
+            const sectoresBase = [
+                { valor: 3 }, { valor: 2 }, { valor: 2 }, { valor: 2 },
+                { valor: 1 }, { valor: 1 }, { valor: 1 }, { valor: 1 },
+                { valor: 0 }, { valor: 0 }
+            ];
+
+            function generarSectoresAleatorios() {
+                const colores = ["#FFFFFF", "#DDDDDD"];
+                return sectoresBase
+                    .sort(() => Math.random() - 0.5)
+                    .map((s, i) => ({
+                        valor: s.valor,
+                        color: colores[i % colores.length],
+                        border: true
+                    }));
+            }
+
+            let sectores = generarSectoresAleatorios();
+
+            function dibujarRuleta(angulo = 0) {
+                const tam = sectores.length;
+                const anguloSector = 2 * Math.PI / tam;
+                for (let i = 0; i < tam; i++) {
+                    ctx.beginPath();
+                    ctx.moveTo(200, 200);
+                    ctx.fillStyle = sectores[i].color;
+                    ctx.strokeStyle = "#000000";
+                    ctx.lineWidth = 2;
+                    ctx.arc(200, 200, 200, i * anguloSector + angulo, (i + 1) * anguloSector + angulo);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.stroke();
+                    ctx.save();
+                    ctx.translate(200, 200);
+                    ctx.rotate(i * anguloSector + angulo + anguloSector / 2);
+                    ctx.fillStyle = "#000";
+                    ctx.font = "bold 20px Montserrat";
+                    ctx.fillText(sectores[i].valor, 120, 10);
+                    ctx.restore();
+                }
+            }
+
+            let rotacion = 0;
+            let girando = false;
+
+            canvas.addEventListener("click", () => {
+                if (girando || botonRuleta.classList.contains("comodin-usado") || estado !== "seleccion") return;
+                botonRuleta.classList.add("comodin-usado");
+                botonRuleta.disabled = true;
+                girarRuleta();
+            });
+
+            botonRuleta.addEventListener("click", () => {
+                if (estado !== "seleccion") return;
+                contenedorRuleta.style.display = "flex";
+                sectores = generarSectoresAleatorios();
+                ctx.clearRect(0, 0, 400, 400);
+                dibujarRuleta();
+            });
+
+            function girarRuleta() {
+                girando = true;
+                const vueltas = 10 + Math.floor(Math.random() * 4);
+                const destino = Math.random() * 2 * Math.PI;
+                const total = vueltas * 2 * Math.PI + destino;
+                const duracion = 4000;
+                const inicio = performance.now();
+
+                function animar(now) {
+                    const progreso = (now - inicio) / duracion;
+                    if (progreso < 1) {
+                        rotacion = total * easeOutCubic(progreso);
+                        ctx.clearRect(0, 0, 400, 400);
+                        dibujarRuleta(rotacion);
+                        requestAnimationFrame(animar);
+                    } else {
+                        rotacion = total;
+                        ctx.clearRect(0, 0, 400, 400);
+                        dibujarRuleta(rotacion);
+                        girando = false;
+                        setTimeout(() => evaluarResultado(rotacion), 500);
+                    }
+                }
+
+                requestAnimationFrame(animar);
+            }
+
+            function easeOutCubic(t) {
+                return (--t) * t * t + 1;
+            }
+
+            function evaluarResultado(angulo) {
+                const tam = sectores.length;
+                const anguloPorSector = 2 * Math.PI / tam;
+
+                // Ángulo de la flecha superior (top): -π/2 = 270°
+                const anguloFlecha = -Math.PI / 2;
+
+                // Ángulo actual final ajustado dentro de [0, 2π)
+                const anguloFinal = (angulo % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
+
+                // Encuentra el sector cuyo ángulo central está más cerca de la flecha
+                let sectorSeleccionado = 0;
+                let menorDiferencia = Infinity;
+
+                for (let i = 0; i < tam; i++) {
+                    const inicio = i * anguloPorSector;
+                    const centro = (inicio + anguloPorSector / 2 + anguloFinal) % (2 * Math.PI);
+                    const diferencia = Math.abs(centro - (anguloFlecha + 2 * Math.PI)) % (2 * Math.PI);
+                    if (diferencia < menorDiferencia) {
+                        menorDiferencia = diferencia;
+                        sectorSeleccionado = i;
+                    }
+                }
+
+                const resultado = sectores[sectorSeleccionado].valor;
+
+                console.log("🎯 Cayó en:", resultado);
+                eliminarRespuestasIncorrectas(resultado);
+                contenedorRuleta.style.display = "none";
+            }
+
+
+            function eliminarRespuestasIncorrectas(cantidad) {
+                const correcta = preguntaActual.correcta.toUpperCase();
+                const botones = document.querySelectorAll(".respuestas-cont button");
+
+                const respuestasIncorrectas = [...botones].filter(btn => {
+                    const texto = btn.querySelector("span").textContent.trim();
+                    return !texto.startsWith(correcta + ":");
+                });
+
+                const aEliminar = respuestasIncorrectas.sort(() => Math.random() - 0.5).slice(0, cantidad);
+
+                aEliminar.forEach(btn => {
+                    btn.classList.add("fade-out-respuesta");
+                    btn.addEventListener("animationend", function handleAnimEnd() {
+                        btn.style.display = "none";
+                        btn.removeEventListener("animationend", handleAnimEnd);
+                    });
+                });
+            }
+        });
+
+    </script>
+
+
+
+
+    <div id="comodin-ruleta" style="display: none; position: fixed; top: 0; left: 0; 
+width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); 
+z-index: 9999; justify-content: center; align-items: center;">
+        <div class="ruleta-container">
+            <div class="flecha-indicadora"></div>
+            <canvas id="canvas-ruleta" width="400" height="400"></canvas>
+        </div>
+    </div>
+
+
+    <div id="comodin-llamada" style="display: none; position: fixed; top: 0; left: 0; 
+    width: 100%; height: 100%; background-color: rgba(0,0,0,0.3); 
+    align-items: center; justify-content: center; z-index: 9999;">
+        <div id="cuadro-llamada" class="fade-in">45</div>
+    </div>
+
+
+
+</body>
+
+</html>

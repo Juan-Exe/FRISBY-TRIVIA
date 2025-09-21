@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+    <header>
+        <a class="btn-header" href="../index.html">
+            <img src="../Assets/Sin título-1.png" alt="">
+        </a>
+    </header>
+
+    <div class="Titulo">
+        <img src="../Assets/Registrp.png" class="animar-imagen" alt="">
+    </div>
+
+
+    <form id="formulario">
+
+        <div class="select-cont">
+            <label for="dificultad">Selecciona la dificultad:</label>
+            <select id="dificultad" name="dificultad">
+                <option value="Facil">Fácil</option>
+                <option value="Intermedio">Intermedio</option>
+                <option value="Dificil">Difícil</option>
+            </select>
+        </div>
+
+        <div class="preguntas-cont">
+            <label class="preguntas-cont-tit" for="tema">TEMARIO:</label>
+            <input type="text" id="tema" name="tema" placeholder="Tema de la pregunta">
+
+            <label class="preguntas-cont-tit" for="enunciado">Enunciado:</label>
+            <textarea id="enunciado" name="enunciado"></textarea>
+
+            <label class="preguntas-cont-tit" for="respuestaA">Respuesta A:</label>
+            <input type="text" id="respuestaA" name="respuestaA" placeholder="Respuesta A">
+
+            <label class="preguntas-cont-tit" for="respuestaB">Respuesta B:</label>
+            <input type="text" id="respuestaB" name="respuestaB" placeholder="Respuesta B">
+
+            <label class="preguntas-cont-tit" for="respuestaC">Respuesta C:</label>
+            <input type="text" id="respuestaC" name="respuestaC" placeholder="Respuesta C">
+
+            <label class="preguntas-cont-tit" for="respuestaD">Respuesta D:</label>
+            <input type="text" id="respuestaD" name="respuestaD" placeholder="Respuesta D">
+
+            <div class="select-correcta">
+                <label>Selecciona la respuesta correcta:</label>
+                <div class="opciones-correctas">
+                    <label>
+                        <input type="radio" name="respuesta_correcta" value="A">
+                        <span>A</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="respuesta_correcta" value="B">
+                        <span>B</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="respuesta_correcta" value="C">
+                        <span>C</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="respuesta_correcta" value="D">
+                        <span>D</span>
+                    </label>
+                </div>
+            </div>
+
+
+        </div>
+
+        <div class="button-ctn">
+            <button type="submit">
+                <img src="../Assets/BOTON REGISTRAR.png" alt="Registrar">
+            </button>
+        </div>
+    </form>
+
+
+
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const radios = document.querySelectorAll('input[type="radio"][name="respuesta_correcta"]');
+            let selected = null;
+
+            radios.forEach(radio => {
+                radio.addEventListener('click', function () {
+                    if (this === selected) {
+                        this.checked = false;
+                        selected = null;
+                    } else {
+                        selected = this;
+                    }
+                });
+            });
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const radios = document.querySelectorAll('input[type="radio"][name="respuesta_correcta"]');
+            let selected = null;
+
+            radios.forEach(radio => {
+                radio.addEventListener('click', function () {
+                    if (this === selected) {
+                        this.checked = false;
+                        selected = null;
+                    } else {
+                        selected = this;
+                    }
+                });
+            });
+
+            document.getElementById("formulario").addEventListener("submit", function (e) {
+                e.preventDefault();
+
+                const tema = document.getElementById("tema").value.trim();
+                const enunciado = document.getElementById("enunciado").value.trim();
+                const respuestaA = document.getElementById("respuestaA").value.trim();
+                const respuestaB = document.getElementById("respuestaB").value.trim();
+                const respuestaC = document.getElementById("respuestaC").value.trim();
+                const respuestaD = document.getElementById("respuestaD").value.trim();
+                const dificultad = document.getElementById("dificultad").value;
+                const correcta = document.querySelector('input[name="respuesta_correcta"]:checked')?.value;
+
+                // Validación manual
+                if (!tema || !enunciado || !respuestaA || !respuestaB || !respuestaC || !respuestaD || !dificultad || !correcta) {
+                    alert("⚠️ Todos los campos son obligatorios. Por favor, completa todo antes de registrar.");
+                    return;
+                }
+
+                const data = {
+                    tema,
+                    enunciado,
+                    respuestaA,
+                    respuestaB,
+                    respuestaC,
+                    respuestaD,
+                    dificultad,
+                    correcta
+                };
+
+                fetch('/registrar-pregunta', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                }).then(res => {
+                    if (res.ok) {
+                        alert("✅ Pregunta registrada correctamente");
+                        document.getElementById("formulario").reset();
+                    } else {
+                        alert("❌ Error al registrar la pregunta");
+                    }
+                });
+            });
+        });
+    </script>
+
+    <script>
+        // Lista de canciones disponibles
+        const canciones = [
+            "/Assets/Musica/Metal Gear Solid 2 [Sons of Liberty] - Complete Soundtrack - 102 - Sons of Liberty Main Titles - Ragitsu.mp3",
+            "/Assets/Musica/MGS3 OST CQC - Metal Gear Solid 3 Snake Eater - Nox.mp3",
+            "/Assets/Musica/ATLUS Sound Team - Mementos.mp3",
+            "/Assets/Musica/ATLUS Sound Team - Interrogation Room.mp3",
+            "/Assets/Musica/02 - Introduction - MetalGearSolidF4N.mp3",
+            "/Assets/Musica/05 - Intruder 1 - MetalGearSolidF4N.mp3",
+            "/Assets/Musica/07 - Intruder 2 - MetalGearSolidF4N.mp3",
+            "/Assets/Musica/Call of Duty 4 Modern Warfare Soundtrack - 1.Main Theme - Thom9316.mp3",
+            "/Assets/Musica/Mission - Yasuharu Takanashi.mp3",
+            "/Assets/Musica/Naruto OST 2 - Sasuke's Theme - ostdelta1.mp3",
+
+            // Agrega más rutas si tienes más canciones
+        ];
+
+        // Función para seleccionar una canción aleatoria distinta de la actual
+        function obtenerCancionAleatoria(actual) {
+            let nueva;
+            do {
+                nueva = canciones[Math.floor(Math.random() * canciones.length)];
+            } while (canciones.length > 1 && nueva === actual);
+            return nueva;
+        }
+
+        // Crear y configurar el elemento <audio>
+        const musica = document.createElement("audio");
+        musica.id = "musicaFondo";
+        musica.autoplay = true;
+        musica.loop = false; // No hacemos loop, cambiamos al terminar
+        musica.volume = 1.0;
+
+        let cancionActual = obtenerCancionAleatoria(null);
+
+        const source = document.createElement("source");
+        source.src = cancionActual;
+        source.type = "audio/mpeg";
+
+        musica.appendChild(source);
+        document.body.appendChild(musica);
+
+        // Cuando termina la canción, se carga otra diferente
+        musica.addEventListener("ended", () => {
+            cancionActual = obtenerCancionAleatoria(cancionActual);
+            source.src = cancionActual;
+            musica.load();
+            musica.play();
+        });
+
+        // Fade-out al cambiar de página
+        document.querySelectorAll("a").forEach(link => {
+            link.addEventListener("click", function (e) {
+                e.preventDefault();
+                const href = this.href;
+
+                let volume = musica.volume;
+                const fade = setInterval(() => {
+                    if (volume > 0.05) {
+                        volume -= 0.05;
+                        musica.volume = volume;
+                    } else {
+                        clearInterval(fade);
+                        musica.pause();
+                        window.location.href = href;
+                    }
+                }, 50);
+            });
+        });
+    </script>
+
+
+</body>
+
+</html>

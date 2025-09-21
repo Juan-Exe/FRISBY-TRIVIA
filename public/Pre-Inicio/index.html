@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="styles.css" />
+    <title>Pre inicio</title>
+    <style>
+        .dropdown {
+            position: relative;
+            width: 106px;
+            font-family: 'Montserrat', sans-serif;
+            border: 2px solid #000;
+            border-radius: 5px;
+            background-color: white;
+            box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.6);
+            cursor: pointer;
+        }
+
+        .dropdown .selected {
+            padding: 5px;
+            text-align: center;
+        }
+
+        .dropdown .options {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 160px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: white;
+            z-index: 10;
+            flex-direction: column;
+        }
+
+        .dropdown .option {
+            padding: 5px;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .dropdown .option:hover {
+            background-color: #eee;
+        }
+
+        .dropdown.open .options {
+            display: flex;
+        }
+
+        .Btn-inicio-cont-bt.disabled {
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        .Btn-inicio-cont-bt {
+            transition: opacity 0.5s ease;
+            opacity: 1;
+        }
+
+        .Btn-inicio-cont-bt.disabled {
+            pointer-events: none;
+            opacity: 0.3;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <a class="btn-header" href="../index.html">
+            <img src="../Assets/Sin título-1.png" alt="Home" />
+        </a>
+    </header>
+
+    <div class="Titulo">
+        <h1 class="animar-imagen">Seleccione el tema de las preguntas</h1>
+    </div>
+
+    <div class="ctn"></div>
+
+    <div class="Btn-inicio-cont">
+        <a id="startGameButton" class="Btn-inicio-cont-bt disabled" href="../Juego/index.html">
+            <img src="../Assets/Boton.png" alt="" />
+        </a>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            Promise.all([
+                fetch("http://localhost:3001/temas-por-dificultad").then(res => res.json()),
+                fetch("http://localhost:3001/conteo-temas").then(res => res.json())
+            ]).then(([temasPorDificultad, conteoTemas]) => {
+                const container = document.querySelector(".ctn");
+
+                const asignacionesActuales = {};
+
+                function contarAsignaciones() {
+                    Object.keys(asignacionesActuales).forEach(k => delete asignacionesActuales[k]);
+                    for (let i = 1; i <= 15; i++) {
+                        const selected = document.querySelector(`#dropdown-${i} .selected`);
+                        const temaTexto = selected?.dataset.tema;
+                        if (temaTexto && temaTexto !== "null") {
+                            let dificultad = "";
+                            if (i <= 5) dificultad = "facil";
+                            else if (i <= 10) dificultad = "intermedio";
+                            else dificultad = "dificil";
+
+                            const clave = `${temaTexto}-${dificultad}`;
+                            asignacionesActuales[clave] = (asignacionesActuales[clave] || 0) + 1;
+                        }
+                    }
+                }
+
+                function cerrarTodosLosDropdowns() {
+                    document.querySelectorAll(".dropdown").forEach(d => d.classList.remove("open"));
+                }
+
+                function notificarTema(numero, tema) {
+                    if (window.ws && ws.readyState === WebSocket.OPEN) {
+                        ws.send(JSON.stringify({ ronda: numero, tema }));
+                    }
+                }
+
+                function verificarTodosAsignados() {
+                    const asignados = document.querySelectorAll('.selected');
+                    let completos = 0;
+                    const temasPorRonda = [];
+
+                    asignados.forEach(sel => {
+                        const tema = sel.dataset.tema;
+                        if (tema && tema !== "null") {
+                            completos++;
+                            temasPorRonda.push(tema);
+                        } else {
+                            temasPorRonda.push(null);
+                        }
+                    });
+
+                    const boton = document.querySelector("#startGameButton");
+                    if (completos === 15) {
+                        boton.classList.remove("disabled");
+                        localStorage.setItem("temasPorRonda", JSON.stringify(temasPorRonda));
+                    } else {
+                        boton.classList.add("disabled");
+                    }
+                }
+
+                for (let i = 1; i <= 15; i++) {
+                    const wrapper = document.createElement("div");
+                    wrapper.classList.add("Preguntas-ctn");
+
+                    const label = document.createElement("label");
+                    label.textContent = i;
+                    wrapper.appendChild(label);
+
+                    const dropdown = document.createElement("div");
+                    dropdown.classList.add("dropdown");
+                    dropdown.id = `dropdown-${i}`;
+
+                    const selected = document.createElement("div");
+                    selected.classList.add("selected");
+                    selected.textContent = "Seleccionar";
+                    selected.dataset.tema = null;
+                    dropdown.appendChild(selected);
+
+                    const options = document.createElement("div");
+                    options.classList.add("options");
+
+                    let dificultad = "";
+                    if (i <= 5) dificultad = "facil";
+                    else if (i <= 10) dificultad = "intermedio";
+                    else dificultad = "dificil";
+
+                    const temas = temasPorDificultad[dificultad] || [];
+                    temas.forEach(tema => {
+                        const maxDisponibles = conteoTemas[dificultad]?.[tema] || 0;
+
+                        const option = document.createElement("div");
+                        option.classList.add("option");
+                        option.textContent = `${tema} (${maxDisponibles})`;
+                        option.dataset.tema = tema;
+
+                        option.addEventListener("click", (e) => {
+                            e.stopPropagation();
+                            contarAsignaciones();
+                            const clave = `${tema}-${dificultad}`;
+                            const asignadas = asignacionesActuales[clave] || 0;
+
+                            if (asignadas >= maxDisponibles) {
+                                alert(`⚠️ Ya se han asignado todas las preguntas disponibles para "${tema}" en nivel "${dificultad}"`);
+                                return;
+                            }
+
+                            selected.textContent = `${tema} (${maxDisponibles})`;
+                            selected.dataset.tema = tema;
+                            cerrarTodosLosDropdowns();
+                            notificarTema(i, tema);
+                            verificarTodosAsignados();
+                        });
+
+                        options.appendChild(option);
+                    });
+
+                    dropdown.appendChild(options);
+
+                    selected.addEventListener("click", (e) => {
+                        e.stopPropagation();
+                        const isOpen = dropdown.classList.contains("open");
+                        cerrarTodosLosDropdowns();
+                        if (!isOpen) dropdown.classList.add("open");
+                    });
+
+                    wrapper.appendChild(dropdown);
+                    container.appendChild(wrapper);
+                }
+
+                document.addEventListener("click", () => cerrarTodosLosDropdowns());
+            });
+        });
+    </script>
+
+
+
+
+    <script>
+        const canciones = [
+            "/Assets/Musica/ATLUS Sound Team - Endless Days.mp3",
+            "/Assets/Musica/ATLUS Sound Team - Wicked Plan.mp3",
+            "/Assets/Musica/Main Theme - Release.mp3",
+            "/Assets/Musica/ATLUS Sound Team - Butterfly Kiss.mp3",
+            "/Assets/Musica/ATLUS Sound Team - King, Queen, and Slaves.mp3",
+            "/Assets/Musica/Naruto - Konohamaru's Theme - ssj5Bardock.mp3",
+            "/Assets/Musica/Stables (The Legend of Zelda Breath of the Wild OST) - Peaches Lamb.mp3",
+        ];
+
+        function obtenerCancionAleatoria(actual) {
+            let nueva;
+            do {
+                nueva = canciones[Math.floor(Math.random() * canciones.length)];
+            } while (canciones.length > 1 && nueva === actual);
+            return nueva;
+        }
+
+        const musica = document.createElement("audio");
+        musica.id = "musicaFondo";
+        musica.autoplay = true;
+        musica.loop = false;
+        musica.volume = 1.0;
+
+        let cancionActual = obtenerCancionAleatoria(null);
+
+        const source = document.createElement("source");
+        source.src = cancionActual;
+        source.type = "audio/mpeg";
+
+        musica.appendChild(source);
+        document.body.appendChild(musica);
+
+        musica.addEventListener("ended", () => {
+            cancionActual = obtenerCancionAleatoria(cancionActual);
+            source.src = cancionActual;
+            musica.load();
+            musica.play();
+        });
+
+        document.querySelectorAll("a").forEach(link => {
+            link.addEventListener("click", function (e) {
+                e.preventDefault();
+                const href = this.href;
+
+                let volume = musica.volume;
+                const fade = setInterval(() => {
+                    if (volume > 0.05) {
+                        volume -= 0.05;
+                        musica.volume = volume;
+                    } else {
+                        clearInterval(fade);
+                        musica.pause();
+                        window.location.href = href;
+                    }
+                }, 50);
+            });
+        });
+    </script>
+
+</body>
+
+</html>

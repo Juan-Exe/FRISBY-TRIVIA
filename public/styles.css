@@ -1,0 +1,76 @@
+body{
+    margin: 0;
+    font-family: 'Montserrat'
+}
+
+.Titulo{
+    height: 50vh;
+    display: flex;
+    align-items: end;
+    justify-content: center;
+}
+
+.Titulo img{
+    width: 500px;
+    height: auto;
+}
+
+.Btn-inicio-cont{
+    margin-top: 50px;
+    width: 100%;
+    height: auto;
+    display: flex;
+    justify-content: center;
+}
+
+.Btn-inicio-cont-bt{
+    background: none;
+    cursor: pointer;
+    border: none;
+}
+
+
+
+.Btn-inicio-cont-bt img{
+    width: 200px;    
+    height: auto;
+}
+
+.btn-gestion{
+    height: 250px;
+    align-items: end;
+    display: flex;
+    justify-content: space-between;
+    padding: 50px;
+}
+
+.btn-gestion a{
+    text-decoration: none;
+    color: black;
+    font-weight: 600;
+}
+
+.animar-imagen {
+    position: relative;
+    animation: flotar 1.8s ease-in-out infinite;
+}
+
+@keyframes flotar {
+    0% {
+        top: 0px;
+    }
+    50% {
+        top: 15px;
+    }
+    100% {
+        top: 0px;
+    }
+}
+
+.Btn-inicio-cont-bt img {
+    transition: transform 0.3s ease;
+}
+
+.Btn-inicio-cont-bt:hover img {
+    transform: translateY(10px);
+}
