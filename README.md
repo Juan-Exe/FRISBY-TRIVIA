@@ -1,57 +1,81 @@
 # Frisby Trivia
 
-Juego de trivia interactivo estilo *¿Quién quiere ser millonario?*, diseñado para ser usado en transmisiones en vivo con OBS. El Host controla el juego desde el navegador mientras los jugadores compiten en pantalla.
+> Juego de trivia interactivo para transmisiones en vivo, inspirado en **El Concursillo de IlloJuan**.
+> Diseñado para que un Host conduzca partidas en tiempo real a través de OBS, con mecánicas de comodines, dificultad progresiva y una segunda oportunidad especial en la ronda 10.
 
 ---
 
-## Tecnologías utilizadas
+## Tabla de contenidos
+
+1. [Stack tecnológico](#stack-tecnológico)
+2. [Requisitos e instalación](#requisitos-e-instalación)
+3. [Estructura del proyecto](#estructura-del-proyecto)
+4. [Arquitectura](#arquitectura)
+5. [Mecánicas del juego](#mecánicas-del-juego)
+6. [Comodines](#comodines)
+7. [Base de datos](#base-de-datos)
+8. [Integración con OBS](#integración-con-obs)
+9. [Módulos en desarrollo](#módulos-en-desarrollo)
+10. [Aviso legal](#aviso-legal)
+11. [Inspiración](#inspiración)
+
+---
+
+## Stack tecnológico
 
 | Capa | Tecnología |
 |---|---|
-| Backend | Node.js + Express 5 |
-| Base de datos | MariaDB (Docker) |
-| Frontend | HTML, CSS, JavaScript vanilla |
-| Infraestructura | Docker + Docker Compose |
-| Conector DB | mysql2 |
+| **Runtime** | Node.js |
+| **Framework backend** | Express 5 |
+| **Base de datos** | MariaDB |
+| **Conector DB** | mysql2 |
+| **Frontend** | HTML5 · CSS3 · JavaScript vanilla |
+| **Infraestructura** | Docker + Docker Compose |
 
 ---
 
-## Cómo correr el proyecto
+## Requisitos e instalación
 
-### Requisitos
-- Docker Desktop instalado y corriendo
+### Requisitos previos
 
-### Pasos
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado y en ejecución
+
+### Instalación
 
 ```bash
-# Clonar el repositorio
+# 1. Clonar el repositorio
 git clone <url-del-repo>
 cd FRISBY-TRIVIA
 
-# Levantar todo (app + base de datos)
+# 2. Levantar la aplicación y la base de datos
 npm run docker:up
 ```
 
-La app queda disponible en `http://localhost:3001`
+La aplicación quedará disponible en **`http://localhost:3001`**
+La base de datos MariaDB quedará expuesta en el puerto **`3307`**
 
-### Credenciales de la base de datos (DBeaver u otro cliente)
+### Comandos disponibles
+
+```bash
+npm run docker:up      # Construir e iniciar todos los contenedores
+npm run docker:down    # Detener y eliminar los contenedores
+npm run docker:logs    # Ver logs en tiempo real
+```
+
+### Credenciales de base de datos
+
+Útiles para conectarse con DBeaver u otro cliente SQL:
 
 | Campo | Valor |
 |---|---|
-| Host | localhost |
-| Puerto | 3307 |
-| Base de datos | frisby_trivia |
-| Usuario | frisby_user |
-| Contraseña | frisby_pass_2026 |
-| Driver | MariaDB / MySQL |
-
-### Comandos útiles
-
-```bash
-npm run docker:up      # Levantar contenedores
-npm run docker:down    # Bajar contenedores
-npm run docker:logs    # Ver logs en tiempo real
-```
+| Host | `localhost` |
+| Puerto | `3307` |
+| Base de datos | `frisby_trivia` |
+| Usuario | `frisby_user` |
+| Contraseña | `frisby_pass_2026` |
+| Usuario root | `root` |
+| Contraseña root | `root_frisby_2026` |
+| Driver | MariaDB / MySQL compatible |
 
 ---
 
@@ -59,108 +83,215 @@ npm run docker:logs    # Ver logs en tiempo real
 
 ```
 FRISBY-TRIVIA/
-├── server.js                  # API REST con Express
-├── docker-compose.yml         # App + MariaDB
-├── Dockerfile
+│
+├── server.js                     # Servidor Express — API REST y servicio de archivos estáticos
+├── docker-compose.yml            # Orquestación: contenedor app + contenedor MariaDB
+├── Dockerfile                    # Imagen de la aplicación Node.js
+├── .env                          # Variables de entorno (credenciales, puerto)
+├── .env.example                  # Plantilla de variables de entorno
+│
 ├── db/
 │   └── init/
-│       ├── 001_schema.sql     # Esquema de la base de datos
-│       └── 002_seed_trivia.sql # Preguntas iniciales de ejemplo
-└── public/
-    ├── index.html             # Pantalla de inicio (Host)
-    ├── styles.css
-    ├── Pre-Inicio/            # Selección de categorías por ronda
-    ├── Juego/                 # Pantalla principal del juego
-    ├── Registrar_Preguntas/   # Módulo para agregar preguntas
-    └── Gestionar_Preguntas/   # Módulo para administrar preguntas (en desarrollo)
+│       ├── 001_schema.sql        # Definición del esquema de la base de datos
+│       └── 002_seed_trivia.sql   # Preguntas iniciales por categoría y dificultad
+│
+└── public/                       # Frontend estático servido por Express
+    ├── index.html                # Pantalla de inicio — punto de entrada del Host
+    ├── styles.css                # Estilos globales compartidos
+    ├── Assets/                   # Imágenes, íconos y música del juego
+    │
+    ├── Pre-Inicio/               # Pantalla de configuración de rondas
+    │   └── index.html            # El Host asigna una categoría a cada una de las 15 rondas
+    │
+    ├── Juego/                    # Pantalla principal del juego (vista OBS)
+    │   ├── index.html            # Lógica del juego, comodines y animaciones
+    │   └── styles.css
+    │
+    ├── Registrar_Preguntas/      # Módulo para crear preguntas en la base de datos
+    │
+    └── Gestionar_Preguntas/      # Módulo de administración de preguntas (en desarrollo)
 ```
 
 ---
 
-## Cómo funciona el juego
+## Arquitectura
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                        Docker                           │
+│                                                         │
+│   ┌──────────────────┐        ┌──────────────────────┐  │
+│   │   Node.js App    │◄──────►│   MariaDB            │  │
+│   │   Express 5      │        │   frisby_trivia DB   │  │
+│   │   Puerto: 3001   │        │   Puerto: 3307       │  │
+│   └──────────┬───────┘        └──────────────────────┘  │
+│              │                                          │
+└──────────────┼──────────────────────────────────────────┘
+               │
+               ▼
+    ┌──────────────────┐
+    │  Navegador Host  │  ←  Controla el juego
+    │  localhost:3001  │
+    └──────────────────┘
+               │
+               ▼
+    ┌──────────────────┐
+    │       OBS        │  ←  Captura y transmite la pantalla del juego
+    └──────────────────┘
+```
+
+---
+
+## Mecánicas del juego
+
+### Flujo general
+
+```
+Inicio  →  Pre-Inicio  →  Juego  →  Victoria / Game Over  →  Inicio
+```
 
 ### Rol del Host
-El Host es quien opera el juego. Antes de empezar:
-1. Registra preguntas desde **Registrar Preguntas** (con categoría y dificultad)
-2. En la pantalla de inicio presiona **Iniciar**
-3. En la pantalla de **Pre-Inicio** asigna una categoría de pregunta a cada una de las 15 rondas
-4. Comienza el juego
 
-### Dinámica de juego
-- **15 rondas** divididas en tres bloques de dificultad:
-  - Rondas 1–5: Fácil
-  - Rondas 6–10: Intermedio
-  - Rondas 11–15: Difícil
-- Cada ronda muestra una pregunta de la categoría asignada con 4 opciones (A, B, C, D)
-- El Host va revelando el enunciado y las respuestas con clics
-- El jugador selecciona una respuesta; un segundo clic sobre la misma la confirma
+El Host conduce la partida completa desde su navegador:
 
-### Comodines
-El juego tiene 4 comodines:
+1. **Registrar preguntas** — Accede a *Registrar Preguntas* y carga preguntas con categoría y dificultad
+2. **Iniciar partida** — Desde la pantalla de inicio verifica que haya suficientes preguntas y presiona *Iniciar*
+3. **Configurar rondas** — En *Pre-Inicio* asigna una categoría temática a cada una de las 15 rondas
+4. **Conducir el juego** — Revela el enunciado y las respuestas con clics progresivos durante la transmisión
 
-| Comodín | Descripción |
+### Estructura de rondas
+
+| Rondas | Dificultad |
 |---|---|
-| **Llamada** | Activa un temporizador de 60 segundos para "llamar a un amigo" |
-| **50/50** | Elimina 2 respuestas incorrectas |
-| **Ruleta** | Gira una ruleta que elimina entre 0 y 3 respuestas incorrectas aleatoriamente |
-| **Uso Carruso** *(ronda 11+)* | Descarta la pregunta actual y la reemplaza por otra del sistema |
+| 1 – 5 | Fácil |
+| 6 – 10 | Intermedio |
+| 11 – 15 | Difícil |
 
-### Mecánica especial — Ronda 10 (Aureola)
-Al llegar a la ronda 10, el jugador tiene **una segunda oportunidad**:
-- Si responde mal, la aureola se "gasta" (vuelve a su versión transparente) y puede volver a intentarlo
-- Si falla por segunda vez, es **Game Over**
-- Si acierta en cualquiera de los dos intentos, avanza normalmente
+### Sistema de respuesta
+
+- El Host revela el enunciado y cada opción (A, B, C, D) con clics individuales
+- El jugador selecciona una respuesta con un primer clic → se marca visualmente
+- Un segundo clic sobre la misma respuesta la **confirma**
+- Si es correcta → avanza a la siguiente ronda
+- Si es incorrecta → **Game Over** (salvo mecánica especial de ronda 10)
+
+### Mecánica especial — Ronda 10: Aureola
+
+La ronda 10 es la última pregunta de dificultad intermedia. Como recompensa por llegar hasta allí, el jugador cuenta con una **segunda oportunidad**:
+
+- Si responde incorrectamente → la aureola se **gasta** (imagen activa pasa a transparente)
+- El jugador puede volver a seleccionar una respuesta diferente
+- Si falla por segunda vez → **Game Over**
+- Si acierta (en cualquiera de los dos intentos) → avanza normalmente
 
 ### Game Over
-Al responder incorrectamente (sin segunda oportunidad disponible), aparece un modal **GAME OVER** con opción de volver al inicio.
+
+Al perder aparece un modal **GAME OVER** con música detenida y botón para volver al inicio.
+
+---
+
+## Comodines
+
+El juego dispone de 4 comodines, cada uno de uso único por partida:
+
+| Comodín | Disponible desde | Descripción |
+|---|---|---|
+| **Llamada** | Ronda 1 | Inicia un temporizador de 60 segundos simulando una llamada de ayuda |
+| **50 / 50** | Ronda 1 | Elimina aleatoriamente 2 de las 3 respuestas incorrectas |
+| **Ruleta** | Ronda 1 | Gira una ruleta que puede eliminar 0, 1, 2 o 3 respuestas incorrectas |
+| **Uso Carruso** | Ronda 11 | Descarta la pregunta actual y la reemplaza por otra del banco de preguntas |
+
+> El comodín **Uso Carruso** se desbloquea únicamente al superar la ronda 10, reflejando que el jugador ha llegado a las preguntas difíciles.
 
 ---
 
 ## Base de datos
 
-### Tabla `preguntas`
+### Esquema — tabla `preguntas`
 
 | Campo | Tipo | Descripción |
 |---|---|---|
-| id | INT (PK) | Identificador único |
-| enunciado | TEXT | Texto de la pregunta |
-| a / b / c / d | VARCHAR | Opciones de respuesta |
-| correcta | CHAR(1) | Letra correcta (a, b, c, d) |
-| dificultad | ENUM | facil / intermedio / dificil |
-| tema | VARCHAR | Categoría (videojuegos, series, etc.) |
+| `id` | INT — PK, AUTO_INCREMENT | Identificador único |
+| `enunciado` | TEXT | Texto completo de la pregunta |
+| `a` | VARCHAR(255) | Opción A |
+| `b` | VARCHAR(255) | Opción B |
+| `c` | VARCHAR(255) | Opción C |
+| `d` | VARCHAR(255) | Opción D |
+| `correcta` | CHAR(1) | Letra de la respuesta correcta (`a`, `b`, `c` o `d`) |
+| `dificultad` | ENUM | `facil` / `intermedio` / `dificil` |
+| `tema` | VARCHAR(100) | Categoría temática de la pregunta |
 
-### Categorías incluidas en el seed inicial
+### Categorías del seed inicial
+
 - Videojuegos
 - Series
 - Películas
 - Cultura pop
 - Música
 
+### Restaurar un backup
+
+```bash
+# Colocar el archivo backup.sql en la raíz del proyecto y ejecutar:
+docker exec -i frisby_trivia_db mariadb -u root -proot_frisby_2026 frisby_trivia < backup.sql
+```
+
 ---
 
-## Uso con OBS
+## Integración con OBS
 
-Este juego está diseñado para transmisiones en vivo:
+Este proyecto está diseñado específicamente para transmisiones en vivo:
 
-1. Agregar una fuente **Navegador** en OBS apuntando a `http://localhost:3001/Juego/index.html`
-2. Activar **"Quitar fondo"** en la configuración de la fuente del navegador (chroma key o color key sobre blanco)
-3. Agregar las cámaras del Host y del participante como fuentes separadas
-4. El Host controla el juego desde su propio navegador; los jugadores ven la pantalla compartida
+### Configuración recomendada en OBS
+
+1. **Fuente Navegador** → URL: `http://localhost:3001/Juego/index.html`
+   Resolución: `1920 × 1080`
+
+2. **Quitar el fondo blanco** usando *Filtro de color* (Color Key) sobre blanco en la fuente del navegador — el fondo del juego es blanco puro, lo que facilita el keying
+
+3. **Fuente de cámara del Host** — posicionada en una mitad de la escena
+
+4. **Fuente de cámara del participante** — posicionada en la otra mitad
+
+5. El Host controla el juego desde su propio navegador en segundo plano, sin que interfiera con lo que se ve en OBS
+
+### Resultado en pantalla
+
+```
+┌────────────────────────────────────────────────────────┐
+│  Cámara Host    │    Cámara Participante               │
+│                 │                                      │
+│       ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○                  │
+│       [ PREGUNTA DEL JUEGO                  ]          │
+│       [ Opción A         ]  [ Opción B      ]          │
+│       [ Opción C         ]  [ Opción D      ]          │
+└────────────────────────────────────────────────────────┘
+```
 
 ---
 
 ## Módulos en desarrollo
 
-- **Gestionar Preguntas**: Panel para ver, bloquear y administrar preguntas ya jugadas, útil para reutilizar el juego con los mismos jugadores sin repetir preguntas
+### Gestionar Preguntas
+
+Panel de administración con las siguientes funcionalidades planificadas:
+
+- Ver historial de preguntas ya jugadas en partidas anteriores
+- Bloquear preguntas para que no vuelvan a aparecer en futuras rondas con el mismo jugador
+- Filtrar por categoría, dificultad y estado (activa / bloqueada)
+
+> Útil cuando se juega repetidamente con el mismo grupo de personas.
 
 ---
 
 ## Aviso legal
 
-Las canciones incluidas en el proyecto fueron descargadas de YouTube con fines de **uso personal y entretenimiento**. No se busca ningún rédito económico ni se reivindica autoría sobre ellas. Todos los derechos pertenecen a sus respectivos autores. Este proyecto es de carácter recreativo y no comercial.
+Las canciones incluidas en este repositorio fueron obtenidas de YouTube con fines de **uso personal, recreativo y sin ánimo de lucro**. No se reivindica autoría sobre ninguna de ellas. Todos los derechos pertenecen a sus respectivos autores y sellos. Este proyecto no tiene fines comerciales.
 
 ---
 
 ## Inspiración
 
-Inspirado directamente en **El Concursillo de IlloJuan**, el formato de trivia del streamer español IlloJuan, a su vez basado en *¿Quién quiere ser millonario?*. Adaptado para jugarse entre amigos en un ambiente informal y divertido.
+Inspirado en **El Concursillo de IlloJuan**, el formato de trivia creado por el streamer español **IlloJuan**, que a su vez toma como referencia el programa *¿Quién quiere ser millonario?*
+
+Frisby Trivia adapta ese formato para que cualquier persona pueda montar su propia versión del juego con amigos, usando únicamente un navegador y OBS.
