@@ -140,7 +140,16 @@
             <button><span></span></button>
             <button><span></span></button>
         </div>
-    </div>
+        </div>
+        <!-- Modal Game Over -->
+        <div id="modalGameOver" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); z-index:9999; justify-content:center; align-items:center;">
+            <div style="background:#fff; color:#222; border-radius:16px; padding:40px 30px; box-shadow:0 8px 32px rgba(0,0,0,0.3); text-align:center; min-width:320px; max-width:90vw;">
+                <h2 style="font-size:2.2em; margin-bottom:0.5em; letter-spacing:2px; color:#222;">GAME OVER</h2>
+                <p style="font-size:1.2em; margin-bottom:2em; color:#444;">¡Has perdido el juego!<br>¿Quieres intentarlo de nuevo?</p>
+                <button id="btnReiniciar" style="background:#fff; color:#222; border:2px solid #222; border-radius:8px; padding:12px 32px; font-size:1.1em; cursor:pointer; margin-right:12px; transition:background 0.2s;">Reiniciar</button>
+                <button id="btnVolverInicio" style="background:#fff; color:#222; border:2px solid #222; border-radius:8px; padding:12px 32px; font-size:1.1em; cursor:pointer; transition:background 0.2s;">Volver al inicio</button>
+            </div>
+        </div>
 
     <div id="efecto-uso"
         style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: none; justify-content: center; align-items: center; z-index: 9999;">
@@ -314,7 +323,19 @@
                                 span.classList.add("fade-out-texto");
                             });
                             setTimeout(() => {
-                                window.location.href = "perdiste.html";
+                                mostrarModalGameOver();
+                                    // Modal Game Over
+                                    function mostrarModalGameOver() {
+                                        const modal = document.getElementById('modalGameOver');
+                                        modal.style.display = 'flex';
+                                        document.body.style.overflow = 'hidden';
+                                    }
+                                    document.addEventListener('DOMContentLoaded', function() {
+                                        const btnReiniciar = document.getElementById('btnReiniciar');
+                                        const btnVolverInicio = document.getElementById('btnVolverInicio');
+                                        if(btnReiniciar) btnReiniciar.onclick = () => { window.location.reload(); };
+                                        if(btnVolverInicio) btnVolverInicio.onclick = () => { window.location.href = '../index.html'; };
+                                    });
                             }, 500);
                         }, { once: true });
                     }, 600);
