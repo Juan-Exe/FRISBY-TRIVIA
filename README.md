@@ -163,4 +163,4 @@ Las canciones incluidas en el proyecto fueron descargadas de YouTube con fines d
 
 ## Inspiración
 
-Inspirado directamente en el formato del programa *¿Quién quiere ser millonario?* / *El Concorcillo*, adaptado para ser jugado entre amigos en un ambiente informal y divertido.
+Inspirado directamente en **El Concursillo de IlloJuan**, el formato de trivia del streamer español IlloJuan, a su vez basado en *¿Quién quiere ser millonario?*. Adaptado para jugarse entre amigos en un ambiente informal y divertido.
