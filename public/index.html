@@ -24,26 +24,126 @@
         <a href="Gestionar_Preguntas/">Gestiona Preguntas</a>
     </div>
 
+    <div id="status-modal" class="status-modal" aria-hidden="true">
+        <div class="status-modal__overlay" data-close-modal="true"></div>
+        <div class="status-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="status-modal-title">
+            <div class="status-modal__header">
+                <h2 id="status-modal-title" class="status-modal__title"></h2>
+                <button id="status-modal-close" class="status-modal__close" aria-label="Cerrar modal">x</button>
+            </div>
+            <p id="status-modal-message" class="status-modal__message"></p>
+            <ul id="status-modal-list" class="status-modal__list"></ul>
+            <div class="status-modal__actions">
+                <button id="status-modal-btn" class="status-modal__btn">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        const modal = document.getElementById('status-modal');
+        const modalTitle = document.getElementById('status-modal-title');
+        const modalMessage = document.getElementById('status-modal-message');
+        const modalList = document.getElementById('status-modal-list');
+        const modalBtn = document.getElementById('status-modal-btn');
+        const modalClose = document.getElementById('status-modal-close');
+
+        function abrirModal({ titulo, mensaje, items = [] }) {
+            modalTitle.textContent = titulo;
+            modalMessage.textContent = mensaje;
+            modalList.innerHTML = '';
+
+            if (items.length > 0) {
+                modalList.style.display = 'grid';
+                items.forEach(item => {
+                    const li = document.createElement('li');
+                    if (typeof item === 'string') {
+                        li.textContent = item;
+                        li.classList.add('status-item', 'status-item--low');
+                    } else {
+                        li.textContent = item.texto;
+                        li.classList.add('status-item', `status-item--${item.estado}`);
+                    }
+                    modalList.appendChild(li);
+                });
+            } else {
+                modalList.style.display = 'none';
+            }
+
+            modal.classList.add('is-open');
+            modal.setAttribute('aria-hidden', 'false');
+            modalBtn.focus();
+        }
+
+        function cerrarModal() {
+            modal.classList.remove('is-open');
+            modal.setAttribute('aria-hidden', 'true');
+        }
+
+        modal.addEventListener('click', (e) => {
+            if (e.target.dataset.closeModal === 'true') {
+                cerrarModal();
+            }
+        });
+
+        modalBtn.addEventListener('click', cerrarModal);
+        modalClose.addEventListener('click', cerrarModal);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.classList.contains('is-open')) {
+                cerrarModal();
+            }
+        });
+
         document.getElementById('btn-comenzar').addEventListener('click', () => {
             fetch('/conteo-preguntas')
                 .then(res => res.json())
                 .then(conteo => {
+                    const niveles = [
+                        { clave: 'facil', etiqueta: 'Fáciles' },
+                        { clave: 'intermedio', etiqueta: 'Intermedias' },
+                        { clave: 'dificil', etiqueta: 'Difíciles' }
+                    ];
+
                     const faltan = [];
 
-                    if (conteo.facil < 10) faltan.push(`Fáciles: ${conteo.facil}/10`);
-                    if (conteo.intermedio < 10) faltan.push(`Intermedias: ${conteo.intermedio}/10`);
-                    if (conteo.dificil < 10) faltan.push(`Difíciles: ${conteo.dificil}/10`);
+                    niveles.forEach(nivel => {
+                        const valor = Number(conteo[nivel.clave] || 0);
+
+                        if (valor < 10) {
+                            let estado = 'low';
+                            let leyenda = 'faltan varias';
+
+                            if (valor >= 8) {
+                                estado = 'high';
+                                leyenda = 'casi listo';
+                            } else if (valor >= 5) {
+                                estado = 'medium';
+                                leyenda = 'buen avance';
+                            }
+
+                            faltan.push({
+                                texto: `${nivel.etiqueta}: ${valor}/10 (${leyenda})`,
+                                estado
+                            });
+                        }
+                    });
 
                     if (faltan.length > 0) {
-                        alert("❌ No puedes comenzar.\nFaltan preguntas:\n" + faltan.join("\n"));
+                        abrirModal({
+                            titulo: 'No puedes comenzar',
+                            mensaje: 'Aun faltan preguntas para iniciar una partida completa. Aqui va tu progreso:',
+                            items: faltan
+                        });
                     } else {
                         window.location.href = "Pre-Inicio/index.html";
                     }
                 })
                 .catch(err => {
                     console.error("Error al verificar preguntas:", err);
-                    alert("❌ No se pudo verificar la base de datos.");
+                    abrirModal({
+                        titulo: 'Error de conexion',
+                        mensaje: 'No se pudo verificar la base de datos. Revisa que Docker y MariaDB esten arriba.'
+                    });
                 });
         });
     </script>

@@ -8,7 +8,7 @@ const bodyParser = require('body-parser');
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 
 // Middlewares
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -29,15 +29,31 @@ wss.on('connection', ws => {
 
 // MySQL conexión
 const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: '',
-    database: 'frisby_trivia'
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || 'frisby_trivia',
+    port: Number(process.env.DB_PORT) || 3306
 });
-db.connect(err => {
-    if (err) throw err;
-    console.log("🟢 Conectado a MySQL");
-});
+
+function conectarBaseDeDatos(reintentos = 10, esperaMs = 3000) {
+    db.connect(err => {
+        if (!err) {
+            console.log("🟢 Conectado a MySQL/MariaDB");
+            return;
+        }
+
+        console.error("❌ Error conectando a DB:", err.message);
+        if (reintentos <= 0) {
+            throw err;
+        }
+
+        console.log(`⏳ Reintentando conexión en ${esperaMs / 1000}s... (${reintentos} intentos restantes)`);
+        setTimeout(() => conectarBaseDeDatos(reintentos - 1, esperaMs), esperaMs);
+    });
+}
+
+conectarBaseDeDatos();
 
 // 🟢 Ruta para registrar preguntas
 app.post('/registrar-pregunta', (req, res) => {
