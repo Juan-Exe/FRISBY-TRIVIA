@@ -16,8 +16,9 @@
 7. [Base de datos](#base-de-datos)
 8. [Integración con OBS](#integración-con-obs)
 9. [Módulos en desarrollo](#módulos-en-desarrollo)
-10. [Aviso legal](#aviso-legal)
-11. [Inspiración](#inspiración)
+10. [Música utilizada](#música-utilizada)
+11. [Aviso legal](#aviso-legal)
+12. [Inspiración](#inspiración)
 
 ---
 
@@ -31,6 +32,31 @@
 | **Conector DB** | mysql2 |
 | **Frontend** | HTML5 · CSS3 · JavaScript vanilla |
 | **Infraestructura** | Docker + Docker Compose |
+
+### Detalle por capa
+
+**Backend — `server.js`**
+- API REST construida con **Express 5**
+- Endpoints para obtener preguntas aleatorias por tema y dificultad, conteo de preguntas, comodín extra y gestión del banco
+- Conexión a MariaDB mediante **mysql2** con pool de conexiones
+- Sirve el frontend como archivos estáticos desde `/public`
+- Configurado mediante variables de entorno (`.env`)
+
+**Base de datos — MariaDB**
+- Contenerizada con Docker, inicializada automáticamente con scripts SQL en `db/init/`
+- Esquema simple de una sola tabla (`preguntas`) con índices por `dificultad` y `tema`
+
+**Frontend — Vanilla**
+- Sin frameworks ni librerías externas — HTML, CSS y JavaScript puro
+- Animaciones con CSS transitions y keyframes
+- Layout responsive con unidades `vw`, `vh` y `clamp()` para escalar entre resoluciones
+- Posicionamiento dinámico de elementos con JavaScript (íconos sobre círculos de ronda)
+- Audio manejado con la Web Audio API nativa del navegador
+
+**Infraestructura — Docker**
+- `docker-compose.yml` orquesta dos servicios: `app` (Node.js) y `db` (MariaDB)
+- Health check en MariaDB para asegurar que la app no arranque antes de que la DB esté lista
+- Volumen persistente para los datos de la base de datos
 
 ---
 
@@ -281,6 +307,59 @@ Panel de administración con las siguientes funcionalidades planificadas:
 - Filtrar por categoría, dificultad y estado (activa / bloqueada)
 
 > Útil cuando se juega repetidamente con el mismo grupo de personas.
+
+---
+
+## Música utilizada
+
+Toda la música fue obtenida de YouTube con fines de uso personal y sin ánimo de lucro. Se organiza por contexto de uso dentro del juego:
+
+### Pantalla de inicio
+| Pista | Origen |
+|---|---|
+| Outset Island | *The Legend of Zelda: The Wind Waker HD* — Rabbit OST |
+| Tokyo Daylight | *Persona 5* — Lyn Inaizumi |
+| Phantom | *Persona 5* — ATLUS Sound Team |
+| Have a Short Rest | *Persona 5* — ATLUS Sound Team |
+| King, Queen, and Slaves (another version) | *Persona 5* — ATLUS Sound Team |
+| Afternoon of Konoha | *Naruto OST 2* — ostdelta1 |
+
+### Rondas fáciles (1–5)
+| Pista | Origen |
+|---|---|
+| Butterfly Kiss | *Persona 5* — ATLUS Sound Team |
+| Endless Days | *Persona 5* — ATLUS Sound Team |
+| Have a Short Rest | *Persona 5* — ATLUS Sound Team |
+| Phantom | *Persona 5* — ATLUS Sound Team |
+| Wicked Plan | *Persona 5* — ATLUS Sound Team |
+| Dark Souls Inicio | *Dark Souls* |
+| Afternoon of Konoha | *Naruto OST 2* — ostdelta1 |
+
+### Rondas intermedias (6–10)
+| Pista | Origen |
+|---|---|
+| Introduction | *Metal Gear Solid 4* — MetalGearSolidF4N |
+| Intruder 2 | *Metal Gear Solid 4* — MetalGearSolidF4N |
+| King, Queen, and Slaves | *Persona 5* — ATLUS Sound Team |
+| Mementos | *Persona 5* — ATLUS Sound Team |
+| Sons of Liberty Main Titles | *Metal Gear Solid 2: Sons of Liberty* — Ragitsu |
+| Mission | *Naruto Shippuden* — Yasuharu Takanashi |
+| Sasuke's Theme | *Naruto OST 2* — ostdelta1 |
+| Shrine | *The Legend of Zelda: Breath of the Wild* — Peaches Lamb |
+
+### Rondas difíciles (11–15)
+| Pista | Origen |
+|---|---|
+| Intruder 1 | *Metal Gear Solid 4* — MetalGearSolidF4N |
+| Interrogation Room | *Persona 5* — ATLUS Sound Team |
+| King, Queen, and Slaves (another version) | *Persona 5* — ATLUS Sound Team |
+| Main Theme | *Call of Duty 4: Modern Warfare* — Thom9316 |
+| CQC | *Metal Gear Solid 3: Snake Eater* — Nox |
+
+### Comodín Uso Carruso
+| Pista | Origen |
+|---|---|
+| Uso Carruso Llega | Efecto de sonido personalizado |
 
 ---
 
