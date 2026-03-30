@@ -324,19 +324,19 @@
                             });
                             setTimeout(() => {
                                 mostrarModalGameOver();
-                                    // Modal Game Over
-                                    function mostrarModalGameOver() {
-                                        const modal = document.getElementById('modalGameOver');
-                                        modal.style.display = 'flex';
-                                        document.body.style.overflow = 'hidden';
-                                    }
-                                    document.addEventListener('DOMContentLoaded', function() {
-                                        const btnReiniciar = document.getElementById('btnReiniciar');
-                                        const btnVolverInicio = document.getElementById('btnVolverInicio');
-                                        if(btnReiniciar) btnReiniciar.onclick = () => { window.location.reload(); };
-                                        if(btnVolverInicio) btnVolverInicio.onclick = () => { window.location.href = '../index.html'; };
-                                    });
                             }, 500);
+                                // Modal Game Over (scope global)
+                                function mostrarModalGameOver() {
+                                    const modal = document.getElementById('modalGameOver');
+                                    modal.style.display = 'flex';
+                                    document.body.style.overflow = 'hidden';
+                                }
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    const btnReiniciar = document.getElementById('btnReiniciar');
+                                    const btnVolverInicio = document.getElementById('btnVolverInicio');
+                                    if(btnReiniciar) btnReiniciar.onclick = () => { window.location.reload(); };
+                                    if(btnVolverInicio) btnVolverInicio.onclick = () => { window.location.href = '../index.html'; };
+                                });
                         }, { once: true });
                     }, 600);
                 }
