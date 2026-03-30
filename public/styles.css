@@ -86,29 +86,40 @@
 .status-modal__btn:hover {
     background: #f7f7f7;
 }
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+}
+
 body{
     margin: 0;
-    font-family: 'Montserrat'
+    font-family: 'Montserrat';
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
 }
 
 .Titulo{
-    height: 50vh;
+    flex: 1;
     display: flex;
-    align-items: end;
+    align-items: center;
     justify-content: center;
 }
 
 .Titulo img{
-    width: 500px;
+    width: clamp(280px, 35vw, 500px);
     height: auto;
 }
 
 .Btn-inicio-cont{
-    margin-top: 50px;
     width: 100%;
     height: auto;
     display: flex;
     justify-content: center;
+    padding: clamp(10px, 3vh, 50px) 0;
 }
 
 .Btn-inicio-cont-bt{
@@ -117,19 +128,17 @@ body{
     border: none;
 }
 
-
-
 .Btn-inicio-cont-bt img{
-    width: 200px;    
+    width: clamp(140px, 15vw, 200px);
     height: auto;
 }
 
 .btn-gestion{
-    height: 250px;
-    align-items: end;
+    height: auto;
+    align-items: center;
     display: flex;
     justify-content: space-between;
-    padding: 50px;
+    padding: clamp(15px, 3vh, 50px) clamp(20px, 3vw, 50px);
 }
 
 .btn-gestion a{

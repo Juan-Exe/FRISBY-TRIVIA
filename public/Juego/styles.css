@@ -21,6 +21,7 @@
     min-width: 320px;
     max-width: 90vw;
     filter: grayscale(1);
+    font-family: 'Montserrat', sans-serif;
 }
 #modalGameOver h2 {
     font-size: 2.2em;
@@ -44,6 +45,7 @@
     margin: 0 8px;
     transition: background 0.2s;
     filter: grayscale(1);
+    font-family: 'Montserrat', sans-serif;
 }
 #modalGameOver button:hover {
     background: #eee;
@@ -51,54 +53,76 @@
 body {
     margin: 0;
     font-family: "Montserrat";
+    overflow: hidden;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
 }
 
 .parte-izquierda {
     width: 50vw;
     height: 100vh;
     border-right: 3px black solid;
+    flex-shrink: 0;
 }
 
 .parte-derecha {
     width: 50vw;
     height: 100vh;
     border-left: 3px black solid;
+    flex-shrink: 0;
 }
 
 .partes-ctn {
     display: flex;
     flex-flow: row;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
 }
 
 header {
-    position: absolute;
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 100%;
     display: flex;
     justify-content: space-between;
+    z-index: 100;
+    pointer-events: none;
 }
 
 header img {
-    padding: 50px 0px 0px 50px;
-    width: 150px;
+    padding: 2.5vw 0px 0px 2.5vw;
+    width: 8vw;
     height: auto;
 }
 
+.btn-header {
+    pointer-events: all;
+}
+
 .comodin-ext {
-    margin-right: 20px;
+    margin-right: 1vw;
 }
 
 .comodines-ctn {
     display: flex;
     justify-content: center;
-    gap: 20px;
+    gap: 1vw;
     align-items: center;
-    margin-top: 30px;
-    margin-right: 50px;
+    margin-top: 1.5vh;
+    margin-right: 2.5vw;
+    pointer-events: all;
 }
 
 .comodines-ctn button {
-    height: 60px;
-    width: 60px;
+    height: 3.5vw;
+    width: 3.5vw;
+    min-width: 40px;
+    min-height: 40px;
 }
 
 .btn-header img {
@@ -153,26 +177,42 @@ header img {
     border-radius: 10px;
 }
 
+/* ── Fila de números ─────────────────────────────────── */
 .numeros-ctn {
-    position: absolute;
+    position: fixed;
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
-    height: 50px;
-    gap: 80px;
-    width: 100%;
-    top: 690px;
+    /* mismo ancho que enunciado, con padding para que los círculos extremos no se salgan */
+    width: 86vw;
+    padding: 0 calc(clamp(28px, 3.2vw, 48px) / 2);
+    box-sizing: border-box;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: calc(34vh + 0.5vh);
+    z-index: 10;
+    overflow: visible;
 }
 
+/* Círculos perfectos compactos distribuidos en el ancho del enunciado */
 .numeros-ctn label {
     color: white;
     background-color: #ebd972;
-    width: 20px;
-    text-align: center;
-    border-radius: 50px;
-    padding: 8px;
-    opacity: 0.3; /* <-- gris translúcido por defecto */
+    width: clamp(28px, 3.2vw, 48px);
+    height: clamp(28px, 3.2vw, 48px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: clamp(10px, 1.1vw, 18px);
+    font-weight: bold;
+    opacity: 0.3;
     transition: opacity 0.5s ease;
+    position: relative;
+    flex-shrink: 0;
+    padding: 0;
+    overflow: visible;
+    box-sizing: border-box;
 }
 
 /* Intermedio */
@@ -193,6 +233,84 @@ header img {
     background-color: #fa3d3d;
 }
 
+/* Estilo cuando la ronda ya fue alcanzada */
+.numeros-ctn label.activa {
+    opacity: 1 !important;
+}
+
+/* ── Íconos aureola y uso: posicionados por JS sobre su label ── */
+.aureola-img,
+.uso-img {
+    pointer-events: none;
+    display: block;
+}
+
+.aureola-img {
+    width: clamp(24px, 2.5vw, 40px);
+    height: auto;
+}
+
+.uso-img {
+    width: clamp(28px, 3vw, 50px);
+    height: auto;
+}
+
+/* ── Enunciado ───────────────────────────────────────── */
+.enunciado {
+    position: fixed;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    bottom: 22vh;
+    left: 50%;
+    transform: translateX(-50%);
+    height: auto;
+    min-height: 9vh;
+    width: 86vw;
+    border-radius: 50px;
+    background: #151313ec;
+}
+
+.enunciado p {
+    padding: 2.5vh 2vw;
+    text-transform: uppercase;
+    text-align: center;
+    font-size: clamp(14px, 1.4vw, 26px);
+    font-weight: bolder;
+    color: white;
+    margin: 0;
+}
+
+/* ── Respuestas ──────────────────────────────────────── */
+.respuestas-cont {
+    position: fixed;
+    display: flex;
+    justify-content: space-between;
+    bottom: 2vh;
+    left: 50%;
+    transform: translateX(-50%);
+    flex-wrap: wrap;
+    gap: 1.5vh 1vw;
+    width: 86vw;
+    height: auto;
+}
+
+.respuestas-cont button {
+    font-family: "Montserrat";
+    font-size: clamp(12px, 1.3vw, 24px);
+    padding-left: 2vw;
+    width: calc(50% - 0.5vw);
+    height: 8vh;
+    min-height: 50px;
+    text-align: left;
+    color: white;
+    background: #151313ec;
+    border-radius: 50px;
+    cursor: pointer;
+    border: none;
+}
+
+/* ── Comodín llamada ─────────────────────────────────── */
 #comodin-llamada {
     display: none;
     position: fixed;
@@ -220,7 +338,7 @@ header img {
     border: 2px solid #000;
     border-radius: 15px;
     padding: 40px;
-    font-size: 60px;
+    font-size: clamp(36px, 4vw, 60px);
     font-weight: bold;
     font-family: 'Montserrat', sans-serif;
     box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.6);
@@ -234,119 +352,4 @@ header img {
 
 #cuadro-llamada.fade-out {
     opacity: 0;
-}
-
-
-/* Estilo cuando la ronda ya fue alcanzada o completada */
-.numeros-ctn label.activa {
-    opacity: 1 !important;
-}
-
-
-.aureola img {
-    position: absolute;
-    background: none;
-    border-radius: 50px;
-    top: 680px;
-    right: 713px;
-    width: 30px;
-    height: 20px;
-}
-
-.uso img {
-    position: absolute;
-    background: none;
-    top: 665px;
-    right: 592px;
-    width: 40px;
-    height: 40px;
-}
-
-.aureola img,
-.uso img {
-    transition: opacity 0.8s ease-in-out;
-    opacity: 0.5; /* Transparente al inicio */
-}
-
-.aureola img.activa,
-.uso img.activa {
-    opacity: 1;
-}
-
-
-.enunciado {
-    position: absolute;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    top: 750px;
-    right: 118px;
-    height: 70px;
-    width: 1670px;
-    border-radius: 50px;
-    background: #151313ec;
-}
-
-.enunciado p {
-    padding: 20px;
-    text-transform: uppercase;
-    text-align: center;
-    font-size: 25px;
-    font-weight: bolder;
-    color: white;
-}
-
-.respuestas-cont {
-    position: absolute;
-    display: flex;
-    justify-content: space-between;
-    top: 835px;
-    flex-wrap: wrap;
-    right: 118px;
-    height: 220px;
-    width: 1670px;
-}
-
-.respuestas-cont button {
-    font-family: "Montserrat";
-    font-size: 25px;
-    padding-left: 30px;
-    width: 790px;
-    height: 80px;
-    text-align: left;
-    color: white;
-    background: #151313ec;
-    border-radius: 50px;
-    cursor: pointer;
-    border: none;
-}
-
-@media (max-width: 1912px) {
-    .numeros-ctn {
-        top: 590px;
-    }
-
-    .aureola img {
-        top: 580px;
-        right: 709px;
-    }
-
-    .uso img {
-        top: 565px;
-        right: 587px;
-    }
-
-    .enunciado {
-        top: 645px;
-        right: 118px;
-    }
-
-
-
-    .respuestas-cont {
-
-        top: 730px;
-        right: 118px;
-
-    }
 }

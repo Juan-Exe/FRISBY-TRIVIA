@@ -122,14 +122,16 @@
 
         <div class="parte-izquierda"></div>
         <div class="parte-derecha"></div>
-        <div class="aureola"><img id="imgAureola" src="../Assets/aureola transparente.png" alt="" /></div>
-        <div class="uso"><img id="imgUso" src="../Assets/Uso transparente png 2.png" alt="" /></div>
-
         <div class="numeros-ctn">
             <label>1</label><label>2</label><label>3</label><label>4</label><label>5</label>
-            <label>6</label><label>7</label><label>8</label><label>9</label><label>10</label>
-            <label>11</label><label>12</label><label>13</label><label>14</label><label>15</label>
+            <label>6</label><label>7</label><label>8</label><label>9</label>
+            <label id="label10">10</label>
+            <label id="label11">11</label>
+            <label>12</label><label>13</label><label>14</label><label>15</label>
         </div>
+        <!-- Iconos fuera del label para no heredar su opacity -->
+        <img id="imgAureola" class="aureola-img" src="../Assets/aureola transparente.png" alt="" />
+        <img id="imgUso" class="uso-img" src="../Assets/Uso transparente png 2.png" alt="" />
 
         <div class="enunciado">
             <p></p>
@@ -142,12 +144,11 @@
         </div>
         </div>
         <!-- Modal Game Over -->
-        <div id="modalGameOver" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); z-index:9999; justify-content:center; align-items:center;">
-            <div style="background:#fff; color:#222; border-radius:16px; padding:40px 30px; box-shadow:0 8px 32px rgba(0,0,0,0.3); text-align:center; min-width:320px; max-width:90vw;">
-                <h2 style="font-size:2.2em; margin-bottom:0.5em; letter-spacing:2px; color:#222;">GAME OVER</h2>
-                <p style="font-size:1.2em; margin-bottom:2em; color:#444;">¡Has perdido el juego!<br>¿Quieres intentarlo de nuevo?</p>
-                <button id="btnReiniciar" style="background:#fff; color:#222; border:2px solid #222; border-radius:8px; padding:12px 32px; font-size:1.1em; cursor:pointer; margin-right:12px; transition:background 0.2s;">Reiniciar</button>
-                <button id="btnVolverInicio" style="background:#fff; color:#222; border:2px solid #222; border-radius:8px; padding:12px 32px; font-size:1.1em; cursor:pointer; transition:background 0.2s;">Volver al inicio</button>
+        <div id="modalGameOver">
+            <div class="modal-content">
+                <h2>GAME OVER</h2>
+                <p>¡Has perdido el juego!</p>
+                <button id="btnVolverInicio">Volver al inicio</button>
             </div>
         </div>
 
@@ -166,6 +167,32 @@
         let preguntaActual = null;
         let pasoAnimacion = 0;
         let letras = ["A", "B", "C", "D"];
+        let aurelaUsada = false; // se vuelve true cuando el jugador falla en ronda 10
+
+        function centrarEncima(img, label) {
+            const rect = label.getBoundingClientRect();
+            const imgH = img.naturalHeight > 0
+                ? img.offsetHeight
+                : parseInt(img.style.width || img.offsetWidth) * (img.naturalHeight / img.naturalWidth) || 30;
+            img.style.position = "fixed";
+            img.style.zIndex = "20";
+            img.style.left = (rect.left + rect.width / 2 - img.offsetWidth / 2) + "px";
+            img.style.top = (rect.top - img.offsetHeight + rect.height * 0.3) + "px";
+        }
+
+        function posicionarIconos() {
+            const label10 = document.getElementById("label10");
+            const label11 = document.getElementById("label11");
+            const imgAureola = document.getElementById("imgAureola");
+            const imgUso = document.getElementById("imgUso");
+            centrarEncima(imgAureola, label10);
+            centrarEncima(imgUso, label11);
+        }
+
+        // Reposicionar cuando carguen las imágenes y al resize
+        document.getElementById("imgAureola").addEventListener("load", posicionarIconos);
+        document.getElementById("imgUso").addEventListener("load", posicionarIconos);
+        window.addEventListener("resize", posicionarIconos);
 
         function obtenerDificultad(ronda) {
             if (ronda <= 5) return "facil";
@@ -181,11 +208,9 @@
 
             const imgAureola = document.getElementById("imgAureola");
             if (rondaActual === 10) {
-                imgAureola.style.opacity = 0.5;
                 setTimeout(() => {
                     imgAureola.src = "../Assets/aureola.png";
                     imgAureola.classList.add("activa");
-                    imgAureola.style.opacity = 1;
                 }, 100);
             }
 
@@ -195,11 +220,9 @@
                 boton.style.opacity = "0.3";
                 boton.disabled = true;
             } else {
-                imgUso.style.opacity = 0.5;
                 setTimeout(() => {
                     imgUso.src = "../Assets/Uso png 2.png";
                     imgUso.classList.add("activa");
-                    imgUso.style.opacity = 1;
                 }, 100);
                 boton.style.opacity = "1";
                 boton.disabled = false;
@@ -246,6 +269,16 @@
                 .catch((err) => alert("⚠️ " + err.message));
         }
 
+        function mostrarModalGameOver() {
+            detenerMusica();
+            const modal = document.getElementById('modalGameOver');
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            document.getElementById('btnVolverInicio').onclick = () => {
+                window.location.href = '../index.html';
+            };
+        }
+
         function mostrarPorPasos() {
             const enunciado = document.querySelector(".enunciado p");
             const botones = document.querySelectorAll(".respuestas-cont button");
@@ -262,10 +295,12 @@
                 span.textContent = `${letras[i]}: ${respuesta || "(Sin respuesta)"}`;
                 span.classList.add("fade-in-texto");
                 botones[i].onclick = () => manejarClick(botones[i], letras[i]);
-            } else {
-                botones.forEach((b) => b.disabled = false);
-                estado = "seleccion";
-                document.body.removeEventListener("click", mostrarPorPasos);
+                // Al mostrar la 4ta respuesta, activar selección inmediatamente
+                if (pasoAnimacion === 4) {
+                    botones.forEach((b) => b.disabled = false);
+                    estado = "seleccion";
+                    document.body.removeEventListener("click", mostrarPorPasos);
+                }
             }
 
             pasoAnimacion++;
@@ -312,39 +347,50 @@
                     boton.classList.add("incorrecto");
                     correctaBtn.classList.add("correcto");
                     estado = "esperando-click";
-                    setTimeout(() => {
-                        document.body.addEventListener("click", () => {
-                            const enunciado = document.querySelector(".enunciado p");
-                            enunciado.classList.remove("fade-in");
-                            enunciado.classList.add("fade-out");
-                            botones.forEach((b) => {
-                                const span = b.querySelector("span");
-                                span.classList.remove("fade-in-texto");
-                                span.classList.add("fade-out-texto");
-                            });
-                            setTimeout(() => {
-                                mostrarModalGameOver();
-                            }, 500);
-                                // Modal Game Over (scope global)
-                                function mostrarModalGameOver() {
-                                    const modal = document.getElementById('modalGameOver');
-                                    modal.style.display = 'flex';
-                                    document.body.style.overflow = 'hidden';
-                                }
-                                document.addEventListener('DOMContentLoaded', function() {
-                                    const btnReiniciar = document.getElementById('btnReiniciar');
-                                    const btnVolverInicio = document.getElementById('btnVolverInicio');
-                                    if(btnReiniciar) btnReiniciar.onclick = () => { window.location.reload(); };
-                                    if(btnVolverInicio) btnVolverInicio.onclick = () => { window.location.href = '../index.html'; };
+
+                    // Ronda 10 con aureola disponible: segunda oportunidad
+                    if (rondaActual === 10 && !aurelaUsada) {
+                        aurelaUsada = true;
+                        // Quemar la aureola: volver a imagen transparente
+                        const imgAureola = document.getElementById("imgAureola");
+                        imgAureola.src = "../Assets/aureola transparente.png";
+                        imgAureola.classList.remove("activa");
+
+                        setTimeout(() => {
+                            document.body.addEventListener("click", () => {
+                                // Resetear botones para nueva oportunidad
+                                botones.forEach((b) => {
+                                    b.classList.remove("incorrecto", "correcto", "seleccionado");
+                                    b.disabled = false;
                                 });
-                        }, { once: true });
-                    }, 600);
+                                respuestaSeleccionada = null;
+                                estado = "seleccion";
+                            }, { once: true });
+                        }, 600);
+                    } else {
+                        setTimeout(() => {
+                            document.body.addEventListener("click", () => {
+                                const enunciado = document.querySelector(".enunciado p");
+                                enunciado.classList.remove("fade-in");
+                                enunciado.classList.add("fade-out");
+                                botones.forEach((b) => {
+                                    const span = b.querySelector("span");
+                                    span.classList.remove("fade-in-texto");
+                                    span.classList.add("fade-out-texto");
+                                });
+                                setTimeout(() => {
+                                    mostrarModalGameOver();
+                                }, 500);
+                            }, { once: true });
+                        }, 600);
+                    }
                 }
             }
         }
 
         document.addEventListener("DOMContentLoaded", () => {
             cargarPregunta(rondaActual);
+            posicionarIconos();
 
             // 🎯 Comodín Extra
             const boton = document.querySelector(".comodin-ext");
@@ -481,8 +527,6 @@
         });
 
         document.addEventListener("DOMContentLoaded", () => {
-            cargarPregunta(rondaActual);
-
             const botonRuleta = document.querySelector(".comodines-ctn button:nth-child(4)");
             const contenedorRuleta = document.getElementById("comodin-ruleta");
             const canvas = document.getElementById("canvas-ruleta");
